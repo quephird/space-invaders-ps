@@ -1,10 +1,11 @@
 module Main where
 
 import Prelude ( Unit()
-               , (>>=), ($), (+), (-)
+               , (>>=), ($), (+), (-), (++)
                , bind, return, unit )
 
 import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff.Class ( liftEff )
 import Control.Monad.ST ( ST()
                         , STRef(..)
                         , modifySTRef
@@ -15,7 +16,8 @@ import DOM.Event.EventTarget ( EventListener(..)
                              , addEventListener
                              , eventListener )
 import DOM.Event.Types ( Event()
-                       , EventType(..) )
+                       , EventType(..)
+                       , KeyboardEvent() )
 import DOM.HTML ( window )
 import DOM.HTML.Types ( windowToEventTarget )
 import DOM.Timer ( Timeout()
@@ -23,6 +25,7 @@ import DOM.Timer ( Timeout()
                  , interval
                  , timeout )
 import Graphics.Canvas ( Canvas() )
+import Unsafe.Coerce (unsafeCoerce)
 
 import Control.Monad.Eff.Console ( CONSOLE() )
 import Control.Monad.Eff.Console.Unsafe ( logAny )
@@ -35,6 +38,26 @@ type Player =
 type Game =
   { player :: Player
   }
+
+type KeyboardEventMini =
+  { keyCode :: Int
+  }
+eventToKeyboardEvent :: Event -> KeyboardEventMini
+eventToKeyboardEvent = unsafeCoerce
+
+onKeydown :: forall g eff. STRef g Game
+          -> EventListener (console :: CONSOLE | eff)
+onKeydown gRef = eventListener $ \evt -> do
+  let keyboardEvent = eventToKeyboardEvent evt
+      code = keyboardEvent.keyCode
+      keyString = case code of
+                    32 -> "space bar"
+                    37 -> "left"
+                    38 -> "up"
+                    39 -> "right"
+                    40 -> "down"
+                    _  -> "other key"
+  logAny $ keyString ++ " pressed!!!"
 
 setup :: forall eff. Eff eff Game
 setup = do
@@ -77,7 +100,7 @@ main = do
   gRef <- newSTRef { player: { x: 200.0, y: 200.0 }}
 
   addEventListener (EventType "keydown")
-                   (eventListener (\e -> logAny "Key pressed!!!"))
+                   (onKeydown gRef)
                    false
                    (windowToEventTarget globalWindow)
 
