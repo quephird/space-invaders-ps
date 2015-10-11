@@ -59,9 +59,8 @@ onKeydown gRef = eventListener $ \evt -> do
                     _  -> "other key"
   logAny $ keyString ++ " pressed!!!"
 
-setup :: forall eff. Eff eff Game
-setup = do
-  return { player: { x: 200.0, y: 200.0 }}
+setup :: Game
+setup = { player: { x: 200.0, y: 200.0 }}
 
 update :: forall eff g. STRef g Game
        -> Eff ( console :: CONSOLE
@@ -97,7 +96,7 @@ main :: forall eff g. Eff ( canvas :: Canvas
                           , timer :: Timer | eff ) Timeout
 main = do
   globalWindow <- window
-  gRef <- newSTRef { player: { x: 200.0, y: 200.0 }}
+  gRef <- newSTRef $ setup
 
   addEventListener (EventType "keydown")
                    (onKeydown gRef)
