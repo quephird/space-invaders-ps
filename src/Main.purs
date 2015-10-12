@@ -11,6 +11,7 @@ import Control.Monad.ST ( ST()
                         , modifySTRef
                         , newSTRef
                         , readSTRef )
+import Data.Maybe ( Maybe(..) )
 import DOM ( DOM() )
 import DOM.Event.EventTarget ( EventListener(..)
                              , addEventListener
@@ -24,7 +25,14 @@ import DOM.Timer ( Timeout()
                  , Timer()
                  , interval
                  , timeout )
-import Graphics.Canvas ( Canvas() )
+import Graphics.Canvas ( Canvas(..)
+                       , Rectangle(..)
+                       , fillRect
+                       , getCanvasElementById
+                       , getContext2D
+                       , rect
+                       , setFillStyle
+                       )
 import Optic.Core ( (*~), (^.), (..), (+~)
                   , LensP()
                   , lens )
@@ -39,6 +47,8 @@ data Player = Player
   }
 x = lens (\(Player p) -> p.x)
          (\(Player p) x' -> Player (p { x = x' }))
+y = lens (\(Player p) -> p.y)
+         (\(Player p) y' -> Player (p { y = y' }))
 
 data Game = Game
   { player :: Player
@@ -50,8 +60,8 @@ data Key = Left | Right | SpaceBar | Other
 
 movePlayer key gRef = do
   let dx = case key of
-             Left -> -1.0
-             Right -> 1.0
+             Left -> -10.0
+             Right -> 10.0
              _ -> 0.0
   modifySTRef gRef (\g -> g # player .. x +~ dx)
 
@@ -89,9 +99,22 @@ render :: forall eff g. STRef g Game
               , st :: ST g
               , timer :: Timer | eff ) Timeout
 render gRef = do
+  Just canvas <- getCanvasElementById "game"
+  ctx <- getContext2D canvas
   timeout 50 $ do
+    setFillStyle "#FFFFFF" ctx
+    fillRect ctx { x: 0.0
+                 , y: 0.0
+                 , w: 1200.0
+                 , h: 600.0}
+
     g <- readSTRef gRef
-    logAny $ g ^. player .. x
+    setFillStyle "#FF00FF" ctx
+    fillRect ctx { x: g ^. player .. x
+                 , y: g ^. player .. y
+                 , w: 50.0
+                 , h: 50.0}
+    -- logAny $ g ^. player .. x
     render gRef
 
 gameLoop :: forall eff g. STRef g Game
