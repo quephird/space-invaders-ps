@@ -45,10 +45,10 @@ data Player = Player
   { x :: Number
   , y :: Number
   }
-x = lens (\(Player p) -> p.x)
-         (\(Player p) x' -> Player (p { x = x' }))
-y = lens (\(Player p) -> p.y)
-         (\(Player p) y' -> Player (p { y = y' }))
+playerX = lens (\(Game { player: Player p }) -> p.x)
+               (\(Game { player: Player p }) x' -> Game { player: Player (p { x = x' }) })
+playerY = lens (\(Game { player: Player p }) -> p.y)
+               (\(Game { player: Player p }) y' -> Game { player: Player (p { y = y' }) })
 
 data Game = Game
   { player :: Player
@@ -63,7 +63,7 @@ movePlayer key gRef = do
              Left -> -10.0
              Right -> 10.0
              _ -> 0.0
-  modifySTRef gRef (\g -> g # player .. x +~ dx)
+  modifySTRef gRef (\g -> g # playerX +~ dx)
 
 type KeyboardEventMini =
   { keyCode :: Int
@@ -110,11 +110,10 @@ render gRef = do
 
     g <- readSTRef gRef
     setFillStyle "#FF00FF" ctx
-    fillRect ctx { x: g ^. player .. x
-                 , y: g ^. player .. y
+    fillRect ctx { x: g ^. playerX
+                 , y: g ^. playerY
                  , w: 50.0
                  , h: 50.0}
-    -- logAny $ g ^. player .. x
     render gRef
 
 gameLoop :: forall eff g. STRef g Game
