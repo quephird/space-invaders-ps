@@ -1,19 +1,19 @@
 module Main where
 
-import Prelude ( Unit()
-               , (>>=), ($), (+), (-), (++), (#)
+import Prelude ( Functor, Unit()
+               , (>>=), ($), (+), (-), (*), (++), (#)
                , bind, return, unit )
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.Eff.Class ( liftEff )
 import Control.Monad.ST ( ST()
-                        , STRef(..)
+                        , STRef()
                         , modifySTRef
                         , newSTRef
                         , readSTRef )
 import Data.Maybe ( Maybe(..) )
 import DOM ( DOM() )
-import DOM.Event.EventTarget ( EventListener(..)
+import DOM.Event.EventTarget ( EventListener()
                              , addEventListener
                              , eventListener )
 import DOM.Event.Types ( Event()
@@ -25,8 +25,8 @@ import DOM.Timer ( Timeout()
                  , Timer()
                  , interval
                  , timeout )
-import Graphics.Canvas ( Canvas(..)
-                       , Rectangle(..)
+import Graphics.Canvas ( Canvas()
+                       , Rectangle()
                        , fillRect
                        , getCanvasElementById
                        , getContext2D
@@ -34,8 +34,8 @@ import Graphics.Canvas ( Canvas(..)
                        , setFillStyle
                        )
 import Optic.Core ( (*~), (^.), (..), (+~)
-                  , LensP()
-                  , lens )
+                  , Lens(), LensP(), Getter()
+                  , lens, view )
 import Unsafe.Coerce (unsafeCoerce)
 
 import Control.Monad.Eff.Console ( CONSOLE() )
@@ -45,16 +45,25 @@ data Player = Player
   { x :: Number
   , y :: Number
   }
-playerX = lens (\(Game { player: Player p }) -> p.x)
-               (\(Game { player: Player p }) x' -> Game { player: Player (p { x = x' }) })
-playerY = lens (\(Game { player: Player p }) -> p.y)
-               (\(Game { player: Player p }) y' -> Game { player: Player (p { y = y' }) })
 
 data Game = Game
   { player :: Player
+  , w :: Number
+  , h :: Number
   }
+
 player = lens (\(Game g) -> g.player)
               (\(Game g) player' -> Game (g { player = player' }))
+x = lens (\(Player p) -> p.x)
+         (\(Player p) x' -> Player (p { x = x' }))
+y = lens (\(Player p) -> p.y)
+         (\(Player p) y' -> Player (p { y = y' }))
+
+playerX :: Lens Game Game Number Number
+playerX = player .. x
+playerY :: Lens Game Game Number Number
+playerY = player .. y
+
 
 data Key = Left | Right | SpaceBar | Other
 
@@ -85,7 +94,12 @@ onKeydown gRef = eventListener $ \evt -> do
   movePlayer key gRef
 
 setup :: Game
-setup = Game { player: Player { x: 200.0, y: 200.0 } }
+setup =
+  let w = 800.0
+      h = 600.0 in
+  Game { player: Player { x: 0.5*w, y: 0.9*h }
+       , w: w
+       , h: h }
 
 update :: forall eff g. STRef g Game
        -> Eff ( console :: CONSOLE
@@ -102,13 +116,14 @@ render gRef = do
   Just canvas <- getCanvasElementById "game"
   ctx <- getContext2D canvas
   timeout 50 $ do
+    g <- readSTRef gRef
+
     setFillStyle "#FFFFFF" ctx
     fillRect ctx { x: 0.0
                  , y: 0.0
-                 , w: 1200.0
+                 , w: 800.0
                  , h: 600.0}
 
-    g <- readSTRef gRef
     setFillStyle "#FF00FF" ctx
     fillRect ctx { x: g ^. playerX
                  , y: g ^. playerY
