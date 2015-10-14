@@ -1,17 +1,18 @@
 module Main where
 
 import Prelude ( Functor, Unit()
-               , (>>=), ($), (+), (-), (*), (++), (#)
+               , (>>=), (<$>), ($), (+), (-), (*), (++), (#)
                , bind, return, unit )
 
 import Control.Monad.Eff ( Eff() )
-import Control.Monad.Eff.Class ( liftEff )
 import Control.Monad.ST ( ST()
                         , STRef()
                         , modifySTRef
                         , newSTRef
                         , readSTRef )
 import Data.Maybe ( Maybe(..) )
+import Data.Maybe.Unsafe ( fromJust )
+import Data.Nullable ( toMaybe )
 import DOM ( DOM() )
 import DOM.Event.EventTarget ( EventListener()
                              , addEventListener
@@ -20,13 +21,21 @@ import DOM.Event.Types ( Event()
                        , EventType(..)
                        , KeyboardEvent() )
 import DOM.HTML ( window )
-import DOM.HTML.Types ( windowToEventTarget )
+import DOM.HTML.Types ( htmlDocumentToNonElementParentNode
+                      , windowToEventTarget )
+import DOM.HTML.Window ( document )
+import DOM.Node.Element ( getAttribute )
+import DOM.Node.NonElementParentNode ( getElementById )
+import DOM.Node.Types ( Element()
+                      , ElementId(..) )
 import DOM.Timer ( Timeout()
                  , Timer()
                  , interval
                  , timeout )
 import Graphics.Canvas ( Canvas()
+                       , CanvasImageSource()
                        , Rectangle()
+                       , drawImage
                        , fillRect
                        , getCanvasElementById
                        , getContext2D
@@ -34,16 +43,23 @@ import Graphics.Canvas ( Canvas()
                        , setFillStyle
                        )
 import Optic.Core ( (*~), (^.), (..), (+~)
-                  , Lens(), LensP(), Getter()
+                  , Lens()
                   , lens, view )
 import Unsafe.Coerce (unsafeCoerce)
 
 import Control.Monad.Eff.Console ( CONSOLE() )
 import Control.Monad.Eff.Console.Unsafe ( logAny )
 
+import Graphics.Canvas.Image ( makeCanvasImageSource )
+
+data Sprites = Sprites
+  { player :: CanvasImageSource
+  }
+
 data Player = Player
   { x :: Number
   , y :: Number
+  , sprite :: CanvasImageSource
   }
 
 data Game = Game
@@ -58,12 +74,13 @@ x = lens (\(Player p) -> p.x)
          (\(Player p) x' -> Player (p { x = x' }))
 y = lens (\(Player p) -> p.y)
          (\(Player p) y' -> Player (p { y = y' }))
+sprite = lens (\(Player p) -> p.sprite)
+              (\(Player p) sprite' -> Player (p { sprite = sprite' }))
 
 playerX :: Lens Game Game Number Number
 playerX = player .. x
 playerY :: Lens Game Game Number Number
 playerY = player .. y
-
 
 data Key = Left | Right | SpaceBar | Other
 
@@ -93,13 +110,20 @@ onKeydown gRef = eventListener $ \evt -> do
               _  -> Other
   movePlayer key gRef
 
-setup :: Game
-setup =
+setup :: forall eff. Eff (console :: CONSOLE, canvas :: Canvas | eff) Game
+setup = do
+  playerSprite <- makeCanvasImageSource "images/player.png"
   let w = 800.0
-      h = 600.0 in
-  Game { player: Player { x: 0.5*w, y: 0.9*h }
-       , w: w
-       , h: h }
+      h = 600.0
+      player = Player
+        { x: 0.5*w
+        , y: 0.9*h
+        , sprite: playerSprite }
+  return $ Game
+    { player: player
+    , w: w
+    , h: h
+    }
 
 update :: forall eff g. STRef g Game
        -> Eff ( console :: CONSOLE
@@ -107,28 +131,30 @@ update :: forall eff g. STRef g Game
 update gRef = do
   return unit
 
+renderPlayer ctx g = do
+  drawImage ctx
+            (g ^. player .. sprite)
+            (g ^. playerX)
+            (g ^. playerY)
+
 render :: forall eff g. STRef g Game
        -> Eff ( canvas :: Canvas
               , console :: CONSOLE
               , st :: ST g
               , timer :: Timer | eff ) Timeout
 render gRef = do
-  Just canvas <- getCanvasElementById "game"
+  Just canvas <- getCanvasElementById "canvas"
   ctx <- getContext2D canvas
   timeout 50 $ do
     g <- readSTRef gRef
 
-    setFillStyle "#FFFFFF" ctx
+    setFillStyle "#000000" ctx
     fillRect ctx { x: 0.0
                  , y: 0.0
                  , w: 800.0
                  , h: 600.0}
 
-    setFillStyle "#FF00FF" ctx
-    fillRect ctx { x: g ^. playerX
-                 , y: g ^. playerY
-                 , w: 50.0
-                 , h: 50.0}
+    renderPlayer ctx g
     render gRef
 
 gameLoop :: forall eff g. STRef g Game
@@ -147,7 +173,8 @@ main :: forall eff g. Eff ( canvas :: Canvas
                           , timer :: Timer | eff ) Timeout
 main = do
   globalWindow <- window
-  gRef <- newSTRef $ setup
+  game <- setup
+  gRef <- newSTRef game
 
   addEventListener (EventType "keydown")
                    (onKeydown gRef)
