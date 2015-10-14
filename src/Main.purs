@@ -43,44 +43,16 @@ import Graphics.Canvas ( Canvas()
                        , setFillStyle
                        )
 import Optic.Core ( (*~), (^.), (..), (+~)
-                  , Lens()
-                  , lens, view )
+                  , lens )
 import Unsafe.Coerce (unsafeCoerce)
 
 import Control.Monad.Eff.Console ( CONSOLE() )
 import Control.Monad.Eff.Console.Unsafe ( logAny )
 
+import qualified Data.Game.Game as G
+import qualified Data.Game.Player as P
+import qualified Data.Game.Sprites as S
 import Graphics.Canvas.Image ( makeCanvasImageSource )
-
-data Sprites = Sprites
-  { player :: CanvasImageSource
-  }
-
-data Player = Player
-  { x :: Number
-  , y :: Number
-  , sprite :: CanvasImageSource
-  }
-
-data Game = Game
-  { player :: Player
-  , w :: Number
-  , h :: Number
-  }
-
-player = lens (\(Game g) -> g.player)
-              (\(Game g) player' -> Game (g { player = player' }))
-x = lens (\(Player p) -> p.x)
-         (\(Player p) x' -> Player (p { x = x' }))
-y = lens (\(Player p) -> p.y)
-         (\(Player p) y' -> Player (p { y = y' }))
-sprite = lens (\(Player p) -> p.sprite)
-              (\(Player p) sprite' -> Player (p { sprite = sprite' }))
-
-playerX :: Lens Game Game Number Number
-playerX = player .. x
-playerY :: Lens Game Game Number Number
-playerY = player .. y
 
 data Key = Left | Right | SpaceBar | Other
 
@@ -89,7 +61,7 @@ movePlayer key gRef = do
              Left -> -10.0
              Right -> 10.0
              _ -> 0.0
-  modifySTRef gRef (\g -> g # playerX +~ dx)
+  modifySTRef gRef (\g -> g # G.playerX +~ dx)
 
 type KeyboardEventMini =
   { keyCode :: Int
@@ -97,7 +69,7 @@ type KeyboardEventMini =
 eventToKeyboardEvent :: Event -> KeyboardEventMini
 eventToKeyboardEvent = unsafeCoerce
 
-onKeydown :: forall g eff. STRef g Game
+onKeydown :: forall g eff. STRef g G.Game
           -> EventListener ( console :: CONSOLE
                            , st :: ST g  | eff )
 onKeydown gRef = eventListener $ \evt -> do
@@ -110,22 +82,29 @@ onKeydown gRef = eventListener $ \evt -> do
               _  -> Other
   movePlayer key gRef
 
-setup :: forall eff. Eff (console :: CONSOLE, canvas :: Canvas | eff) Game
+setup :: forall eff. Eff (console :: CONSOLE, canvas :: Canvas | eff) G.Game
 setup = do
   playerSprite <- makeCanvasImageSource "images/player.png"
+  invaderSprite1 <- makeCanvasImageSource "images/invader1.png"
+  invaderSprite2 <- makeCanvasImageSource "images/invader2.png"
   let w = 800.0
       h = 600.0
-      player = Player
+      player = P.Player
         { x: 0.5*w
         , y: 0.9*h
-        , sprite: playerSprite }
-  return $ Game
+        }
+      sprites = S.Sprites
+        { player: playerSprite
+        , invader: [ invaderSprite1, invaderSprite2 ]
+        }
+  return $ G.Game
     { player: player
     , w: w
     , h: h
+    , sprites: sprites
     }
 
-update :: forall eff g. STRef g Game
+update :: forall eff g. STRef g G.Game
        -> Eff ( console :: CONSOLE
               , st :: ST g | eff ) Unit
 update gRef = do
@@ -133,11 +112,11 @@ update gRef = do
 
 renderPlayer ctx g = do
   drawImage ctx
-            (g ^. player .. sprite)
-            (g ^. playerX)
-            (g ^. playerY)
+            (g ^. G.playerSprite)
+            (g ^. G.playerX)
+            (g ^. G.playerY)
 
-render :: forall eff g. STRef g Game
+render :: forall eff g. STRef g G.Game
        -> Eff ( canvas :: Canvas
               , console :: CONSOLE
               , st :: ST g
@@ -157,7 +136,7 @@ render gRef = do
     renderPlayer ctx g
     render gRef
 
-gameLoop :: forall eff g. STRef g Game
+gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
                 , console :: CONSOLE
                 , st :: ST g
@@ -173,8 +152,8 @@ main :: forall eff g. Eff ( canvas :: Canvas
                           , timer :: Timer | eff ) Timeout
 main = do
   globalWindow <- window
-  game <- setup
-  gRef <- newSTRef game
+  g <- setup
+  gRef <- newSTRef g
 
   addEventListener (EventType "keydown")
                    (onKeydown gRef)
