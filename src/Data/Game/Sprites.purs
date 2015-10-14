@@ -1,8 +1,6 @@
 module Data.Game.Sprites where
 
-import Optic.Core ( (*~), (^.), (..), (+~)
-                  , Lens()
-                  , lens )
+import Optic.Core ( lens )
 
 import Graphics.Canvas ( CanvasImageSource() )
 

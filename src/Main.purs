@@ -42,8 +42,7 @@ import Graphics.Canvas ( Canvas()
                        , rect
                        , setFillStyle
                        )
-import Optic.Core ( (*~), (^.), (..), (+~)
-                  , lens )
+import Optic.Core ( (^.), (..), (+~) )
 import Unsafe.Coerce (unsafeCoerce)
 
 import Control.Monad.Eff.Console ( CONSOLE() )
