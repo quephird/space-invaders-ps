@@ -48,10 +48,10 @@ import Unsafe.Coerce (unsafeCoerce)
 import Control.Monad.Eff.Console ( CONSOLE() )
 import Control.Monad.Eff.Console.Unsafe ( logAny )
 
+import qualified Data.Game.Enemies as E
 import qualified Data.Game.Game as G
 import qualified Data.Game.Player as P
 import qualified Data.Game.Sprites as S
-import Graphics.Canvas.Image ( makeCanvasImageSource )
 
 data Key = Left | Right | SpaceBar | Other
 
@@ -83,24 +83,18 @@ onKeydown gRef = eventListener $ \evt -> do
 
 setup :: forall eff. Eff (console :: CONSOLE, canvas :: Canvas | eff) G.Game
 setup = do
-  playerSprite <- makeCanvasImageSource "images/player.png"
-  invaderSprite1 <- makeCanvasImageSource "images/invader1.png"
-  invaderSprite2 <- makeCanvasImageSource "images/invader2.png"
+  -- TODO: Need to move this entire construction into Data.Game.Game
   let w = 800.0
       h = 600.0
-      player = P.Player
-        { x: 0.5*w
-        , y: 0.9*h
-        }
-      sprites = S.Sprites
-        { player: playerSprite
-        , invader: [ invaderSprite1, invaderSprite2 ]
-        }
+      player = P.makePlayer (0.5*w) (0.9*h)
+  sprites <- S.loadSprites
   return $ G.Game
     { player: player
     , w: w
     , h: h
+    , status: G.Waiting
     , sprites: sprites
+    , enemies: E.makeRegularLevel
     }
 
 update :: forall eff g. STRef g G.Game
@@ -133,6 +127,9 @@ render gRef = do
                  , h: 600.0}
 
     renderPlayer ctx g
+
+    -- TODO: implement this
+    -- renderEnemies ctx g
     render gRef
 
 gameLoop :: forall eff g. STRef g G.Game

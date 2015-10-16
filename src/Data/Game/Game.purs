@@ -5,14 +5,21 @@ import Optic.Core ( Lens()
                   , (..)
                   , lens )
 
+import qualified Data.Game.Enemies as E
 import qualified Data.Game.Player as P
 import qualified Data.Game.Sprites as S
+
+data Status = GameOver
+            | Playing
+            | Waiting
 
 data Game = Game
   { player :: P.Player
   , w :: Number
   , h :: Number
+  , status :: Status
   , sprites :: S.Sprites
+  , enemies :: E.Enemies
   }
 
 player = lens (\(Game g) -> g.player)
