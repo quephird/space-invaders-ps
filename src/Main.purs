@@ -110,12 +110,12 @@ update gRef = do
 renderEnemies ctx g = do
   let invaderSprites = g ^. G.invaderSprites
       sprite = fromJust $ invaderSprites !! 0
-  invaders <- g ^. G.invaders
-  foreachE invaders $ \(I.Invader i) -> do
+      invaders = g ^. G.invaders
+  foreachE invaders $ \i -> do
     drawImage ctx
               sprite
-              i.x
-              i.y
+              (i ^. I.x)
+              (i ^. I.y)
     return unit
 
 renderPlayer ctx g = do
@@ -142,8 +142,8 @@ render gRef = do
                  , w: 800.0
                  , h: 600.0}
 
-    renderPlayer ctx g
     renderEnemies ctx g
+    renderPlayer ctx g
     render gRef
 
 gameLoop :: forall eff g. STRef g G.Game
