@@ -1,7 +1,7 @@
 module Main where
 
 import Prelude ( Functor, Unit()
-               , (>>=), (<$>), ($), (+), (-), (*), (++), (#)
+               , (>>=), (<$>), ($), (+), (-), (++), (#)
                , bind, return, unit )
 
 import Control.Monad.Eff ( Eff()
@@ -85,22 +85,6 @@ onKeydown gRef = eventListener $ \evt -> do
               _  -> Other
   movePlayer key gRef
 
-setup :: forall eff. Eff (console :: CONSOLE, canvas :: Canvas | eff) G.Game
-setup = do
-  -- TODO: Need to move this entire construction into Data.Game.Game
-  let w = 800.0
-      h = 600.0
-      player = P.makePlayer (0.5*w) (0.9*h)
-  sprites <- S.loadSprites
-  return $ G.Game
-    { player: player
-    , w: w
-    , h: h
-    , status: G.Waiting
-    , sprites: sprites
-    , enemies: E.makeRegularLevel
-    }
-
 update :: forall eff g. STRef g G.Game
        -> Eff ( console :: CONSOLE
               , st :: ST g | eff ) Unit
@@ -162,7 +146,7 @@ main :: forall eff g. Eff ( canvas :: Canvas
                           , timer :: Timer | eff ) Timeout
 main = do
   globalWindow <- window
-  g <- setup
+  g <- G.makeGame 800.0 600.0
   gRef <- newSTRef g
 
   addEventListener (EventType "keydown")

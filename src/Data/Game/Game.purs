@@ -1,6 +1,11 @@
 module Data.Game.Game where
 
-import Graphics.Canvas ( CanvasImageSource() )
+import Prelude ( bind, return, unit
+               , ($), (*) )
+
+import Control.Monad.Eff ( Eff() )
+import Graphics.Canvas ( Canvas()
+                       , CanvasImageSource() )
 import Optic.Core ( Lens()
                   , (..)
                   , lens )
@@ -40,3 +45,18 @@ invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSou
 invaderSprites = sprites .. S.invader
 invaders :: Lens Game Game (Array I.Invader) (Array I.Invader)
 invaders = enemies .. E.invaders
+
+makeGame :: forall eff. Number
+         -> Number
+         -> Eff ( canvas :: Canvas | eff) Game
+makeGame w h = do
+  let player = P.makePlayer (0.5*w) (0.9*h)
+  sprites <- S.loadSprites
+  return $ Game
+    { player: player
+    , w: w
+    , h: h
+    , status: Waiting
+    , sprites: sprites
+    , enemies: E.makeRegularLevel
+    }
