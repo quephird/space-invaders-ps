@@ -4,12 +4,14 @@ import Prelude ( Functor, Unit()
                , (>>=), (<$>), ($), (+), (-), (*), (++), (#)
                , bind, return, unit )
 
-import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff ( Eff()
+                         , foreachE )
 import Control.Monad.ST ( ST()
                         , STRef()
                         , modifySTRef
                         , newSTRef
                         , readSTRef )
+import Data.Array ( (!!), index )
 import Data.Maybe ( Maybe(..) )
 import Data.Maybe.Unsafe ( fromJust )
 import Data.Nullable ( toMaybe )
@@ -34,6 +36,7 @@ import DOM.Timer ( Timeout()
                  , timeout )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource()
+                       , Context2D()
                        , Rectangle()
                        , drawImage
                        , fillRect
@@ -50,6 +53,7 @@ import Control.Monad.Eff.Console.Unsafe ( logAny )
 
 import qualified Data.Game.Enemies as E
 import qualified Data.Game.Game as G
+import qualified Data.Game.Invader as I
 import qualified Data.Game.Player as P
 import qualified Data.Game.Sprites as S
 
@@ -103,11 +107,23 @@ update :: forall eff g. STRef g G.Game
 update gRef = do
   return unit
 
+renderEnemies ctx g = do
+  let invaderSprites = g ^. G.invaderSprites
+      sprite = fromJust $ invaderSprites !! 0
+  invaders <- g ^. G.invaders
+  foreachE invaders $ \(I.Invader i) -> do
+    drawImage ctx
+              sprite
+              i.x
+              i.y
+    return unit
+
 renderPlayer ctx g = do
   drawImage ctx
             (g ^. G.playerSprite)
             (g ^. G.playerX)
             (g ^. G.playerY)
+  return unit
 
 render :: forall eff g. STRef g G.Game
        -> Eff ( canvas :: Canvas
@@ -127,9 +143,7 @@ render gRef = do
                  , h: 600.0}
 
     renderPlayer ctx g
-
-    -- TODO: implement this
-    -- renderEnemies ctx g
+    renderEnemies ctx g
     render gRef
 
 gameLoop :: forall eff g. STRef g G.Game

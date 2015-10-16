@@ -15,6 +15,8 @@ data Sprites = Sprites
 
 player = lens (\(Sprites s) -> s.player)
               (\(Sprites s) player' -> Sprites (s { player = player' }))
+invader = lens (\(Sprites s) -> s.invader)
+               (\(Sprites s) invader' -> Sprites (s { invader = invader' }))
 
 loadSprites = do
   playerSprite <- makeCanvasImageSource "images/player.png"
