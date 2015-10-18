@@ -1,8 +1,8 @@
 module Main where
 
 import Prelude ( Functor, Unit()
-               , (>>=), (<$>), ($), (+), (-), (++), (#)
-               , bind, return, unit )
+               , (>>=), (<$>), ($), (+), (-), (*), (++), (#)
+               , bind, mod, return, unit )
 
 import Control.Monad.Eff ( Eff()
                          , foreachE )
@@ -11,10 +11,14 @@ import Control.Monad.ST ( ST()
                         , modifySTRef
                         , newSTRef
                         , readSTRef )
-import Data.Array ( (!!), index )
+import Data.Array ( (!!), index, length )
+import Data.Date ( Now()
+                 , nowEpochMilliseconds )
+import Data.Int ( fromNumber )
 import Data.Maybe ( Maybe(..) )
 import Data.Maybe.Unsafe ( fromJust )
 import Data.Nullable ( toMaybe )
+import Data.Time ( Seconds(..), toSeconds )
 import DOM ( DOM() )
 import DOM.Event.EventTarget ( EventListener()
                              , addEventListener
@@ -46,6 +50,7 @@ import Graphics.Canvas ( Canvas()
                        , setFillStyle
                        )
 import Optic.Core ( (^.), (..), (+~) )
+import Math ( floor )
 import Unsafe.Coerce (unsafeCoerce)
 
 import Control.Monad.Eff.Console ( CONSOLE() )
@@ -91,10 +96,19 @@ update :: forall eff g. STRef g G.Game
 update gRef = do
   return unit
 
+-- TODO: Move all rendering stuff to new Render module
+chooseSprite sprites (Seconds s) =
+  let n = length sprites
+      idx = (fromJust $ fromNumber $ floor $ s * 2.0) `mod` 2
+  in
+    fromJust $ sprites !! idx
+
 renderEnemies ctx g = do
+  currentTime <- nowEpochMilliseconds
   let invaderSprites = g ^. G.invaderSprites
-      sprite = fromJust $ invaderSprites !! 0
       invaders = g ^. G.invaders
+      secondsIntoGame = toSeconds $ currentTime - (g ^. G.startTime)
+      sprite = chooseSprite invaderSprites secondsIntoGame
   foreachE invaders $ \i -> do
     drawImage ctx
               sprite
@@ -112,6 +126,7 @@ renderPlayer ctx g = do
 render :: forall eff g. STRef g G.Game
        -> Eff ( canvas :: Canvas
               , console :: CONSOLE
+              , now :: Now
               , st :: ST g
               , timer :: Timer | eff ) Timeout
 render gRef = do
@@ -133,6 +148,7 @@ render gRef = do
 gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
                 , console :: CONSOLE
+                , now :: Now
                 , st :: ST g
                 , timer :: Timer | eff ) Timeout
 gameLoop gRef = do
@@ -142,6 +158,7 @@ gameLoop gRef = do
 main :: forall eff g. Eff ( canvas :: Canvas
                           , console :: CONSOLE
                           , dom :: DOM
+                          , now :: Now
                           , st :: ST g
                           , timer :: Timer | eff ) Timeout
 main = do

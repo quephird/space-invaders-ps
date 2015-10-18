@@ -4,6 +4,9 @@ import Prelude ( bind, return, unit
                , ($), (*) )
 
 import Control.Monad.Eff ( Eff() )
+import Data.Date ( Now()
+                 , nowEpochMilliseconds )
+import Data.Time ( Milliseconds() )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
 import Optic.Core ( Lens()
@@ -20,14 +23,17 @@ data Status = GameOver
             | Waiting
 
 data Game = Game
-  { player :: P.Player
-  , w :: Number
+  { w :: Number
   , h :: Number
+  , startTime :: Milliseconds
   , status :: Status
+  , player :: P.Player
   , sprites :: S.Sprites
   , enemies :: E.Enemies
   }
 
+startTime = lens (\(Game g) -> g.startTime)
+                 (\(Game g) startTime' -> Game (g { startTime = startTime' }))
 player = lens (\(Game g) -> g.player)
               (\(Game g) player' -> Game (g { player = player' }))
 sprites = lens (\(Game g) -> g.sprites)
@@ -48,15 +54,18 @@ invaders = enemies .. E.invaders
 
 makeGame :: forall eff. Number
          -> Number
-         -> Eff ( canvas :: Canvas | eff) Game
+         -> Eff ( canvas :: Canvas
+                , now :: Now | eff) Game
 makeGame w h = do
   let player = P.makePlayer (0.5*w) (0.9*h)
   sprites <- S.loadSprites
+  startTime <- nowEpochMilliseconds
   return $ Game
-    { player: player
-    , w: w
+    { w: w
     , h: h
+    , startTime: startTime
     , status: Waiting
+    , player: player
     , sprites: sprites
     , enemies: E.makeRegularLevel
     }
