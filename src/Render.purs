@@ -1,6 +1,6 @@
 module Render where
 
-import Prelude ( ($), (-), (*)
+import Prelude ( ($), (+), (-), (*)
                , bind, mod, return, unit )
 
 import Control.Monad.Eff ( Eff()
@@ -10,7 +10,7 @@ import Control.Monad.ST ( ST(), STRef()
 import Data.Array ( (!!), index, length )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
-import Data.Int ( fromNumber )
+import Data.Int ( fromNumber, toNumber )
 import Data.Maybe ( Maybe(..) )
 import Data.Maybe.Unsafe ( fromJust )
 import Data.Time ( Seconds(..), toSeconds )
@@ -27,19 +27,20 @@ import qualified Data.Game.Game as G
 import qualified Data.Game.Invader as I
 
 -- TODO: Move all rendering stuff to new Render module
-chooseSprite sprites (Seconds s) =
+chooseSprite sprites (Seconds s) idx =
   let n = length sprites
-      idx = (fromJust $ fromNumber $ floor $ s * 2.0) `mod` 2
+      idx' = toNumber idx
+      spriteIdx = (fromJust $ fromNumber $ floor $ s * 2.0 + idx') `mod` 2
   in
-    fromJust $ sprites !! idx
+    fromJust $ sprites !! spriteIdx
 
 renderEnemies ctx g = do
   currentTime <- nowEpochMilliseconds
   let invaderSprites = g ^. G.invaderSprites
       invaders = g ^. G.invaders
       secondsIntoGame = toSeconds $ currentTime - (g ^. G.startTime)
-      sprite = chooseSprite invaderSprites secondsIntoGame
   foreachE invaders $ \i -> do
+    let sprite = chooseSprite invaderSprites secondsIntoGame (i ^. I.idx)
     drawImage ctx
               sprite
               (i ^. I.x)

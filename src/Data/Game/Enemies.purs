@@ -23,6 +23,7 @@ makeRegularLevel =
     y <- 0 .. 2
     return $ I.makeInvader (50.0 + 75.0*toNumber x)
                            (50.0 + 75.0*toNumber y)
+                           (x + x*y)
 
 makeBossLevel =
   BossLevel $ B.makeBoss 600.0 300.0
