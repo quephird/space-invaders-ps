@@ -4,15 +4,18 @@ import Prelude ( bind, return, unit
                , ($), (*) )
 
 import Control.Monad.Eff ( Eff() )
+import Control.Monad.ST ( ST(), STRef()
+                        , modifySTRef, readSTRef )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
 import Data.Time ( Milliseconds() )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
 import Optic.Core ( Lens()
-                  , (..)
+                  , (..), (^.)
                   , lens )
 
+import qualified Data.Game.Bullet as B
 import qualified Data.Game.Enemies as E
 import qualified Data.Game.Invader as I
 import qualified Data.Game.Player as P
@@ -28,6 +31,7 @@ data Game = Game
   , startTime :: Milliseconds
   , status :: Status
   , player :: P.Player
+  , playerBullets :: Array B.Bullet
   , sprites :: S.Sprites
   , enemies :: E.Enemies
   }
@@ -36,6 +40,8 @@ startTime = lens (\(Game g) -> g.startTime)
                  (\(Game g) startTime' -> Game (g { startTime = startTime' }))
 player = lens (\(Game g) -> g.player)
               (\(Game g) player' -> Game (g { player = player' }))
+playerBullets = lens (\(Game g) -> g.playerBullets)
+                     (\(Game g) playerBullets' -> Game (g { playerBullets = playerBullets' }))
 sprites = lens (\(Game g) -> g.sprites)
                (\(Game g) sprites' -> Game (g { sprites = sprites' }))
 enemies = lens (\(Game g) -> g.enemies)
@@ -66,6 +72,14 @@ makeGame w h = do
     , startTime: startTime
     , status: Waiting
     , player: player
+    , playerBullets: []
     , sprites: sprites
     , enemies: E.makeRegularLevel
     }
+
+-- createPlayerBullet :: forall g eff. STRef g Game
+--                    -> Eff ( st :: ST g | eff )
+createPlayerBullet gRef = do
+  g <- readSTRef gRef
+  let newPlayerBullet = B.makePlayerBullet (g ^. playerX) (g ^. playerY)
+  modifySTRef gRef (\g -> g)

@@ -1,9 +1,12 @@
 module KeyHandler where
 
-import Prelude ( ($), (#) )
+import Prelude ( ($), (#)
+               , return )
 
+import Control.Monad.Eff ( Eff(), Pure() )
+import Control.Monad.Eff.Class ( liftEff )
 import Control.Monad.ST ( ST(), STRef()
-                        , modifySTRef )
+                        , modifySTRef, pureST, runST, readSTRef )
 import DOM.Event.EventTarget ( EventListener()
                              , eventListener )
 import DOM.Event.Types ( Event() )
@@ -21,6 +24,13 @@ movePlayer key gRef = do
              _ -> 0.0
   modifySTRef gRef (\g -> g # G.playerX +~ dx)
 
+-- TODO: Figure out how to do inline this into onKeydown, and
+--       if there's a better way to return gRef unchanged
+respondToKey Left gRef = movePlayer Left gRef
+respondToKey Right gRef = movePlayer Right gRef
+respondToKey SpaceBar gRef = G.createPlayerBullet gRef
+respondToKey _ _ = readSTRef gRef
+
 type KeyboardEventMini =
   { keyCode :: Int
   }
@@ -28,7 +38,7 @@ eventToKeyboardEvent :: Event -> KeyboardEventMini
 eventToKeyboardEvent = unsafeCoerce
 
 onKeydown :: forall g eff. STRef g G.Game
-          -> EventListener ( st :: ST g  | eff )
+          -> EventListener ( st :: ST g | eff )
 onKeydown gRef = eventListener $ \evt -> do
   let keyboardEvent = eventToKeyboardEvent evt
       code = keyboardEvent.keyCode
@@ -37,4 +47,4 @@ onKeydown gRef = eventListener $ \evt -> do
               37 -> Left
               39 -> Right
               _  -> Other
-  movePlayer key gRef
+  respondToKey key gRef
