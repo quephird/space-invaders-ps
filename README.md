@@ -12,13 +12,13 @@ This is a rewrite of my space invaders game that I wrote in Clojure; you can see
 
       git clone https://github.com/quephird/space-invaders-ps
 
-* Change into the new directory and run this to bring down all of the dependencies:
+* Change into the new directory and run this to bring down all of the dependencies:  
 
       pulp dep install
 
-* Insure that the `dist` subdirectory exists; if it doesn't create it otherwise the next step will fail. (You will only need to do this once.)
+* Insure that the `dist` subdirectory exists; if it doesn't create it otherwise the next step will fail. (You will only need to do this once.)  
 
-* Run the following to compile all of the source code for the game:
+* Run the following to compile all of the source code for the game:  
 
       pulp build -O --main Main --to dist/Main.js
 
