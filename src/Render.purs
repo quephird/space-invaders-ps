@@ -26,14 +26,6 @@ import Optic.Core ( (^.) )
 import qualified Data.Game.Game as G
 import qualified Data.Game.Invader as I
 
--- TODO: Move all rendering stuff to new Render module
-chooseSprite sprites (Seconds s) idx =
-  let n = length sprites
-      idx' = toNumber idx
-      spriteIdx = (fromJust $ fromNumber $ floor $ s * 2.0 + idx') `mod` 2
-  in
-    fromJust $ sprites !! spriteIdx
-
 renderEnemies ctx g = do
   currentTime <- nowEpochMilliseconds
   let invaderSprites = g ^. G.invaderSprites
@@ -45,7 +37,12 @@ renderEnemies ctx g = do
               sprite
               (i ^. I.x)
               (i ^. I.y)
-    return unit
+    return unit where
+      chooseSprite sprites (Seconds s) idx =
+        let idx' = toNumber idx
+            spriteIdx = (fromJust $ fromNumber $ floor $ idx' + s * 2.0) `mod` 2
+        in
+          fromJust $ sprites !! spriteIdx
 
 renderPlayer ctx g = do
   drawImage ctx
