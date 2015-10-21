@@ -1,18 +1,19 @@
 module Data.Game.Game where
 
-import Prelude ( bind, return, unit
-               , ($), (*) )
+import Prelude ( bind, flip, return, unit
+               , (#), ($), (*) )
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
+import Data.Array ( cons )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
 import Data.Time ( Milliseconds() )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
 import Optic.Core ( Lens()
-                  , (..), (^.)
+                  , (..), (^.), (%~)
                   , lens )
 
 import qualified Data.Game.Bullet as B
@@ -53,6 +54,8 @@ playerY :: Lens Game Game Number Number
 playerY = player .. P.y
 playerSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 playerSprite = sprites .. S.player
+playerBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+playerBulletSprite = sprites .. S.playerBullet
 invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
 invaderSprites = sprites .. S.invader
 invaders :: Lens Game Game (Array I.Invader) (Array I.Invader)
@@ -82,4 +85,4 @@ makeGame w h = do
 createPlayerBullet gRef = do
   g <- readSTRef gRef
   let newPlayerBullet = B.makePlayerBullet (g ^. playerX) (g ^. playerY)
-  modifySTRef gRef (\g -> g)
+  modifySTRef gRef (\g -> g # playerBullets %~ (cons newPlayerBullet))

@@ -6,7 +6,7 @@ import Prelude ( Unit()
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
-                        , newSTRef )
+                        , newSTRef, readSTRef )
 import Data.Date ( Now() )
 import DOM ( DOM() )
 import DOM.Event.EventTarget ( addEventListener )
@@ -23,15 +23,23 @@ import qualified Data.Game.Invader as I
 import qualified Data.Game.Player as P
 import qualified Data.Game.Sprites as S
 import qualified KeyHandler as K
+import qualified Motion as M
 import qualified Render as R
 
+import Control.Monad.Eff.Console ( CONSOLE() )
+import Control.Monad.Eff.Console.Unsafe ( logAny )
+
 update :: forall eff g. STRef g G.Game
-       -> Eff ( st :: ST g | eff ) Unit
+       -> Eff ( console :: CONSOLE
+              , st :: ST g | eff ) Unit
 update gRef = do
+  -- logAny gRef
+  -- M.movePlayerBullets gRef
   return unit
 
 gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
+                , console :: CONSOLE
                 , now :: Now
                 , st :: ST g
                 , timer :: Timer | eff ) Timeout
@@ -40,6 +48,7 @@ gameLoop gRef = do
   R.render gRef
 
 main :: forall eff g. Eff ( canvas :: Canvas
+                          , console :: CONSOLE
                           , dom :: DOM
                           , now :: Now
                           , st :: ST g

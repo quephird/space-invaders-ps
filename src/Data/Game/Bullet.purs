@@ -1,5 +1,7 @@
 module Data.Game.Bullet where
 
+import Optic.Core ( lens )
+
 data Type = Player | Invader | Boss
 
 data Bullet = Bullet
@@ -8,7 +10,7 @@ data Bullet = Bullet
   , y :: Number
   }
 
-makeBullet t x y =
+makeBullet t x y = Bullet
   { type: t
   , x: x
   , y: y
@@ -16,3 +18,8 @@ makeBullet t x y =
 makePlayerBullet = makeBullet Player
 makeInvaderBullet = makeBullet Invader
 makeBossBullet = makeBullet Boss
+
+x = lens (\(Bullet b) -> b.x)
+         (\(Bullet b) x' -> Bullet (b { x = x' }))
+y = lens (\(Bullet b) -> b.y)
+         (\(Bullet b) y' -> Bullet (b { y = y' }))

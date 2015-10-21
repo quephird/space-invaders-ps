@@ -23,6 +23,7 @@ import Graphics.Canvas ( Canvas(), CanvasImageSource(), Context2D(), Rectangle()
 import Math ( floor )
 import Optic.Core ( (^.) )
 
+import qualified Data.Game.Bullet as B
 import qualified Data.Game.Game as G
 import qualified Data.Game.Invader as I
 
@@ -51,6 +52,15 @@ renderPlayer ctx g = do
             (g ^. G.playerY)
   return unit
 
+renderPlayerBullets ctx g = do
+  foreachE (g ^. G.playerBullets) $ \b -> do
+    drawImage ctx
+               (g ^. G.playerBulletSprite)
+               (b ^. B.x)
+               (b ^. B.y)
+    return unit
+  return unit
+
 render :: forall eff g. STRef g G.Game
        -> Eff ( canvas :: Canvas
               , now :: Now
@@ -70,4 +80,5 @@ render gRef = do
 
     renderEnemies ctx g
     renderPlayer ctx g
+    renderPlayerBullets ctx g
     render gRef
