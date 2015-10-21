@@ -58,8 +58,6 @@ renderPlayer ctx g = do
                     (g ^. G.playerY)
   return unit
 
--- TODO: Need to either look into centering images or
---       setting x and y coordinates of entities appropriately.
 renderPlayerBullets ctx g = do
   foreachE (g ^. G.playerBullets) $ \b -> do
     drawImageCentered ctx

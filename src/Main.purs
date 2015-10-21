@@ -33,8 +33,7 @@ update :: forall eff g. STRef g G.Game
        -> Eff ( console :: CONSOLE
               , st :: ST g | eff ) Unit
 update gRef = do
-  -- logAny gRef
-  -- M.movePlayerBullets gRef
+  M.movePlayerBullets gRef
   return unit
 
 gameLoop :: forall eff g. STRef g G.Game
@@ -44,7 +43,7 @@ gameLoop :: forall eff g. STRef g G.Game
                 , st :: ST g
                 , timer :: Timer | eff ) Timeout
 gameLoop gRef = do
-  interval 200 $ update gRef
+  interval 100 $ update gRef
   R.render gRef
 
 main :: forall eff g. Eff ( canvas :: Canvas
