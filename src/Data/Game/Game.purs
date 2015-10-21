@@ -22,6 +22,9 @@ import qualified Data.Game.Invader as I
 import qualified Data.Game.Player as P
 import qualified Data.Game.Sprites as S
 
+import Control.Monad.Eff.Console ( CONSOLE() )
+
+
 data Status = GameOver
             | Playing
             | Waiting
@@ -64,6 +67,7 @@ invaders = enemies .. E.invaders
 makeGame :: forall eff. Number
          -> Number
          -> Eff ( canvas :: Canvas
+                , console :: CONSOLE
                 , now :: Now | eff) Game
 makeGame w h = do
   let player = P.makePlayer (0.5*w) (0.9*h)
