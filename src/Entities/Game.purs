@@ -1,4 +1,4 @@
-module Data.Game.Game where
+module Entities.Game where
 
 import Prelude ( bind, flip, return, unit
                , (#), ($), (*) )
@@ -16,11 +16,11 @@ import Optic.Core ( Lens()
                   , (..), (^.), (%~)
                   , lens )
 
-import qualified Data.Game.Bullet as B
-import qualified Data.Game.Enemies as E
-import qualified Data.Game.Invader as I
-import qualified Data.Game.Player as P
-import qualified Data.Game.Sprites as S
+import qualified Entities.Bullet as B
+import qualified Entities.Enemies as E
+import qualified Entities.Invader as I
+import qualified Entities.Player as P
+import qualified Entities.Sprites as S
 
 data Status = GameOver
             | Playing

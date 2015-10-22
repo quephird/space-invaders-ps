@@ -6,7 +6,7 @@ import Prelude ( Unit()
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
-                        , newSTRef, readSTRef )
+                        , newSTRef )
 import Data.Date ( Now() )
 import DOM ( DOM() )
 import DOM.Event.EventTarget ( addEventListener )
@@ -17,20 +17,10 @@ import DOM.Timer ( Timeout(), Timer()
                  , interval )
 import Graphics.Canvas ( Canvas() )
 
-import qualified Data.Game.Enemies as E
-import qualified Data.Game.Game as G
-import qualified Data.Game.Invader as I
-import qualified Data.Game.Player as P
-import qualified Data.Game.Sprites as S
+import qualified Entities.Game as G
 import qualified KeyHandler as K
-import qualified Motion as M
 import qualified Render as R
-
-update :: forall eff g. STRef g G.Game
-       -> Eff ( st :: ST g | eff ) Unit
-update gRef = do
-  M.movePlayerBullets gRef
-  return unit
+import qualified Update as U
 
 gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
@@ -38,7 +28,7 @@ gameLoop :: forall eff g. STRef g G.Game
                 , st :: ST g
                 , timer :: Timer | eff ) Timeout
 gameLoop gRef = do
-  interval 50 $ update gRef
+  interval 50 $ U.update gRef
   R.render gRef
 
 main :: forall eff g. Eff ( canvas :: Canvas

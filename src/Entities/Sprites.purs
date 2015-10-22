@@ -1,4 +1,4 @@
-module Data.Game.Sprites where
+module Entities.Sprites where
 
 import Prelude ( ($)
                , bind, return )

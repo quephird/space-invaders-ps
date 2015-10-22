@@ -13,7 +13,7 @@ import DOM.Event.Types ( Event() )
 import Optic.Core ( (+~) )
 import Unsafe.Coerce ( unsafeCoerce )
 
-import qualified Data.Game.Game as G
+import qualified Entities.Game as G
 
 data Key = Left | Right | SpaceBar | Other
 
@@ -27,8 +27,6 @@ movePlayer key gRef = do
              _ -> 0.0
   modifySTRef gRef (\g -> g # G.playerX +~ dx)
 
--- TODO: Figure out how to do inline this into onKeydown, and
---       if there's a better way to return gRef unchanged
 respondToKey :: forall g eff. Key
              -> STRef g G.Game
              -> Eff ( st :: ST g | eff ) G.Game

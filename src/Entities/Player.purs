@@ -1,4 +1,4 @@
-module Data.Game.Player where
+module Entities.Player where
 
 import Optic.Core ( lens )
 

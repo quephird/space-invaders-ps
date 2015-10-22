@@ -1,4 +1,4 @@
-module Data.Game.Enemies where
+module Entities.Enemies where
 
 import Prelude ( bind, return
                , ($), (+), (*) )
@@ -7,8 +7,8 @@ import Data.Array ( (..) )
 import Data.Int ( toNumber )
 import Optic.Core ( lens )
 
-import qualified Data.Game.Boss as B
-import qualified Data.Game.Invader as I
+import qualified Entities.Boss as B
+import qualified Entities.Invader as I
 
 data Enemies = Patrol (Array I.Invader)
              | BossLevel B.Boss

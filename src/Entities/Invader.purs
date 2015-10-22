@@ -1,4 +1,4 @@
-module Data.Game.Invader where
+module Entities.Invader where
 
 import Optic.Core ( lens )
 

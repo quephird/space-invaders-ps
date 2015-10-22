@@ -1,4 +1,4 @@
-module Data.Game.Boss where
+module Entities.Boss where
 
 data Status = Alive
             | Hit

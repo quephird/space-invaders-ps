@@ -25,9 +25,9 @@ import Graphics.Canvas.Image ( drawImageCentered, getWidth )
 import Math ( floor )
 import Optic.Core ( (^.) )
 
-import qualified Data.Game.Bullet as B
-import qualified Data.Game.Game as G
-import qualified Data.Game.Invader as I
+import qualified Entities.Bullet as B
+import qualified Entities.Game as G
+import qualified Entities.Invader as I
 
 renderEnemies :: forall eff g. Context2D
               -> G.Game

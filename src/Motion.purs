@@ -9,8 +9,8 @@ import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Optic.Core ( (^.), (.~), (-~) )
 
-import qualified Data.Game.Bullet as B
-import qualified Data.Game.Game as G
+import qualified Entities.Bullet as B
+import qualified Entities.Game as G
 
 import Control.Monad.Eff.Console ( CONSOLE() )
 import Control.Monad.Eff.Console.Unsafe ( logAny )
