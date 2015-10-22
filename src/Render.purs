@@ -1,6 +1,7 @@
 module Render where
 
-import Prelude ( ($), (+), (-), (*)
+import Prelude ( Unit()
+               , ($), (+), (-), (*)
                , bind, mod, return, unit )
 
 import Control.Monad.Eff ( Eff()
@@ -28,9 +29,11 @@ import qualified Data.Game.Bullet as B
 import qualified Data.Game.Game as G
 import qualified Data.Game.Invader as I
 
-import Control.Monad.Eff.Console ( CONSOLE() )
-import Control.Monad.Eff.Console.Unsafe ( logAny )
-
+renderEnemies :: forall eff g. Context2D
+              -> G.Game
+              -> Eff ( canvas :: Canvas
+                     , now :: Now
+                     , st :: ST g | eff ) Unit
 renderEnemies ctx g = do
   currentTime <- nowEpochMilliseconds
   let invaderSprites = g ^. G.invaderSprites
@@ -49,15 +52,21 @@ renderEnemies ctx g = do
         in
           fromJust $ sprites !! spriteIdx
 
+renderPlayer :: forall eff g. Context2D
+             -> G.Game
+             -> Eff ( canvas :: Canvas
+                    , st :: ST g | eff ) Unit
 renderPlayer ctx g = do
-  logAny $ getWidth (g ^. G.playerSprite)
-
   drawImageCentered ctx
                     (g ^. G.playerSprite)
                     (g ^. G.playerX)
                     (g ^. G.playerY)
   return unit
 
+renderPlayerBullets :: forall eff g. Context2D
+                    -> G.Game
+                    -> Eff ( canvas :: Canvas
+                           , st :: ST g | eff ) Unit
 renderPlayerBullets ctx g = do
   foreachE (g ^. G.playerBullets) $ \b -> do
     drawImageCentered ctx
@@ -69,7 +78,6 @@ renderPlayerBullets ctx g = do
 
 render :: forall eff g. STRef g G.Game
        -> Eff ( canvas :: Canvas
-              , console :: CONSOLE
               , now :: Now
               , st :: ST g
               , timer :: Timer | eff ) Timeout

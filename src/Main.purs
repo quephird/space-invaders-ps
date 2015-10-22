@@ -26,28 +26,22 @@ import qualified KeyHandler as K
 import qualified Motion as M
 import qualified Render as R
 
-import Control.Monad.Eff.Console ( CONSOLE() )
-import Control.Monad.Eff.Console.Unsafe ( logAny )
-
 update :: forall eff g. STRef g G.Game
-       -> Eff ( console :: CONSOLE
-              , st :: ST g | eff ) Unit
+       -> Eff ( st :: ST g | eff ) Unit
 update gRef = do
   M.movePlayerBullets gRef
   return unit
 
 gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
-                , console :: CONSOLE
                 , now :: Now
                 , st :: ST g
                 , timer :: Timer | eff ) Timeout
 gameLoop gRef = do
-  interval 100 $ update gRef
+  interval 50 $ update gRef
   R.render gRef
 
 main :: forall eff g. Eff ( canvas :: Canvas
-                          , console :: CONSOLE
                           , dom :: DOM
                           , now :: Now
                           , st :: ST g

@@ -16,8 +16,7 @@ import Control.Monad.Eff.Console ( CONSOLE() )
 import Control.Monad.Eff.Console.Unsafe ( logAny )
 
 movePlayerBullets :: forall g eff. STRef g G.Game
-                  -> Eff ( console :: CONSOLE
-                         , st :: ST g | eff ) G.Game
+                  -> Eff ( st :: ST g | eff ) G.Game
 movePlayerBullets gRef = do
   g <- readSTRef gRef
   let playerBullets = g ^. G.playerBullets

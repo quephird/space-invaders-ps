@@ -17,6 +17,9 @@ import qualified Data.Game.Game as G
 
 data Key = Left | Right | SpaceBar | Other
 
+movePlayer :: forall g eff. Key
+           -> STRef g G.Game
+           -> Eff ( st :: ST g | eff ) G.Game
 movePlayer key gRef = do
   let dx = case key of
              Left -> -10.0
@@ -26,6 +29,9 @@ movePlayer key gRef = do
 
 -- TODO: Figure out how to do inline this into onKeydown, and
 --       if there's a better way to return gRef unchanged
+respondToKey :: forall g eff. Key
+             -> STRef g G.Game
+             -> Eff ( st :: ST g | eff ) G.Game
 respondToKey Left gRef = movePlayer Left gRef
 respondToKey Right gRef = movePlayer Right gRef
 respondToKey SpaceBar gRef = G.createPlayerBullet gRef

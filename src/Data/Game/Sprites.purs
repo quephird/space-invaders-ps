@@ -3,7 +3,8 @@ module Data.Game.Sprites where
 import Prelude ( ($)
                , bind, return )
 
-import Graphics.Canvas ( CanvasImageSource() )
+import Control.Monad.Eff ( Eff() )
+import Graphics.Canvas ( Canvas(), CanvasImageSource() )
 import Optic.Core ( lens )
 
 import Graphics.Canvas.Image ( makeCanvasImageSource, getWidth )
@@ -21,6 +22,7 @@ playerBullet = lens (\(Sprites s) -> s.playerBullet)
 invader = lens (\(Sprites s) -> s.invader)
                (\(Sprites s) invader' -> Sprites (s { invader = invader' }))
 
+loadSprites :: forall eff. Eff ( canvas :: Canvas | eff ) Sprites
 loadSprites = do
   playerSprite <- makeCanvasImageSource "images/player.png"
   playerBulletSprite <- makeCanvasImageSource "images/playerBullet.png"
