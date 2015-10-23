@@ -22,8 +22,11 @@ import qualified KeyHandler as K
 import qualified Render as R
 import qualified Update as U
 
+-- import Control.Monad.Eff.Console ( CONSOLE() )
+
 gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
+                -- , console :: CONSOLE
                 , now :: Now
                 , st :: ST g
                 , timer :: Timer | eff ) Timeout
@@ -32,6 +35,7 @@ gameLoop gRef = do
   R.render gRef
 
 main :: forall eff g. Eff ( canvas :: Canvas
+                          -- , console :: CONSOLE
                           , dom :: DOM
                           , now :: Now
                           , st :: ST g
