@@ -8,7 +8,7 @@ import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Data.Array ( filter )
-import Optic.Core ( (^.), (.~) )
+import Optic.Core ( (^.), (.~), (+~) )
 
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
@@ -31,5 +31,6 @@ update :: forall eff g. STRef g G.Game
               | eff ) Unit
 update gRef = do
   M.movePlayerBullets gRef
+  M.movePatrol gRef
   removeOffscreenPlayerBullets gRef
   return unit

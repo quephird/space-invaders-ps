@@ -37,6 +37,10 @@ data Game = Game
   , enemies :: E.Enemies
   }
 
+w = lens (\(Game g) -> g.w)
+         (\(Game g) w' -> Game (g { w = w' }))
+h = lens (\(Game g) -> g.h)
+         (\(Game g) h' -> Game (g { h = h' }))
 startTime = lens (\(Game g) -> g.startTime)
                  (\(Game g) startTime' -> Game (g { startTime = startTime' }))
 player = lens (\(Game g) -> g.player)
@@ -60,6 +64,8 @@ invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSou
 invaderSprites = sprites .. S.invader
 invaders :: Lens Game Game (Array I.Invader) (Array I.Invader)
 invaders = enemies .. E.invaders
+patrolDirection :: Lens Game Game E.Direction E.Direction
+patrolDirection = enemies .. E.direction
 
 makeGame :: forall eff. Number
          -> Number
