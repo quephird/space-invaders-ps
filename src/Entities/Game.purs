@@ -66,6 +66,8 @@ invaders :: Lens Game Game (Array I.Invader) (Array I.Invader)
 invaders = enemies .. E.invaders
 patrolDirection :: Lens Game Game E.Direction E.Direction
 patrolDirection = enemies .. E.direction
+patrolDx :: Lens Game Game Number Number
+patrolDx = enemies .. E.dx
 
 makeGame :: forall eff. Number
          -> Number

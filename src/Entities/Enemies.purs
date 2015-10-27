@@ -1,6 +1,7 @@
 module Entities.Enemies where
 
-import Prelude ( bind, return
+import Prelude ( Eq
+               , bind, return
                , ($), (+), (*) )
 
 import Data.Array ( (..) )
@@ -11,6 +12,12 @@ import qualified Entities.Boss as B
 import qualified Entities.Invader as I
 
 data Direction = Left | Right
+
+instance eqDirection :: Eq Direction where
+  eq Left Left   = true
+  eq Right Right = true
+  eq _ _         = false
+
 
 data Enemies = Patrol (Array I.Invader) Direction Number
              | BossLevel B.Boss

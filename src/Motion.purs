@@ -1,8 +1,8 @@
 module Motion where
 
 import Prelude ( Ordering(..), Unit()
-               , ($), (#), (<$>), (<), (>), (-), (||)
-               , bind, compare, flip, map, otherwise, return )
+               , ($), (#), (<$>), (<), (>), (-), (||), (==)
+               , bind, compare, flip, map, negate, otherwise, return )
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
@@ -56,12 +56,12 @@ minInvaderX is = do
 isPastMargins :: Number -> Number -> Number -> Boolean
 isPastMargins minX maxX w = (50.0>minX) || (w-50.0)<maxX
 
-newDirection :: E.Direction
-             -> Number
-             -> Array I.Invader
-             -> E.Direction
-newDirection currDir _ [] = currDir
-newDirection currDir w invaders =
+computeDirection :: E.Direction
+                 -> Number
+                 -> Array I.Invader
+                 -> E.Direction
+computeDirection currDir _ [] = currDir
+computeDirection currDir w invaders =
   let minX = fromJust $ minInvaderX invaders
       maxX = fromJust $ maxInvaderX invaders
       pastMargins = isPastMargins minX maxX w
@@ -70,9 +70,25 @@ newDirection currDir w invaders =
     go E.Right true = E.Left
     go currDir _    = currDir
 
-moveInvader :: I.Invader -> E.Direction -> I.Invader
-moveInvader invader E.Right = invader # I.x +~ 5.0
-moveInvader invader E.Left = invader # I.x -~ 5.0
+computeDx :: E.Direction
+          -> E.Direction
+          -> Number
+          -> Number
+computeDx newDir currDir currDx | newDir == currDir = currDx
+                                | otherwise         = negate currDx
+
+computeDy :: E.Direction
+          -> E.Direction
+          -> Number
+computeDy newDir currDir | newDir == currDir = 0.0
+                         | otherwise         = 32.0
+
+moveInvader :: I.Invader
+            -> Number
+            -> Number
+            -> I.Invader
+moveInvader invader newDx newDy = invader # I.x +~ newDx
+                                          & I.y +~ newDy
 
 -- This combinator is used below to allow for chaining
 -- of lens operations. The implementation was taken directly from here:
@@ -85,10 +101,19 @@ movePatrol :: forall g eff. STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game
 movePatrol gRef = do
   g <- readSTRef gRef
-  let w =  g ^. G.w
-      currDir = g ^. G.patrolDirection
-      invaders = g ^. G.invaders
-      newDir = newDirection currDir w invaders
-      newInvaders = map (\i -> moveInvader i newDir) invaders
+  let w            = g ^. G.w
+      currDir      = g ^. G.patrolDirection
+      currDx       = g ^. G.patrolDx
+      currInvaders = g ^. G.invaders
+
+      minX         = fromJust $ minInvaderX currInvaders
+      maxX         = fromJust $ maxInvaderX currInvaders
+      pastMargins  = isPastMargins minX maxX w
+
+      newDir       = computeDirection currDir w currInvaders
+      newDx        = computeDx newDir currDir currDx
+      newDy        = computeDy newDir currDir
+      newInvaders  = map (\i -> moveInvader i newDx newDy) currInvaders
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
-                            & G.patrolDirection .~ newDir)
+                            & G.patrolDirection .~ newDir
+                            & G.patrolDx .~ newDx)
