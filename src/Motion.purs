@@ -30,29 +30,6 @@ movePlayerBullets gRef = do
       newPlayerBullets = map (\b -> b # B.y -~ 20.0) playerBullets
   modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets)
 
-maxArray :: Array Number -> Maybe Number
-maxArray [] = Nothing
-maxArray as = do
-  h <- head as
-  t <- tail as
-  return $ foldl max h t
-
-maxInvaderX :: Array I.Invader
-            -> Maybe Number
-maxInvaderX [] = Nothing
-maxInvaderX is = do
-  h <- head is
-  t <- tail is
-  return $ foldl (\a i -> max a (i ^. I.x)) (h ^. I.x) t
-
-minInvaderX :: Array I.Invader
-            -> Maybe Number
-minInvaderX [] = Nothing
-minInvaderX is = do
-  h <- head is
-  t <- tail is
-  return $ foldl (\a i -> min a (i ^. I.x)) (h ^. I.x) t
-
 isPastMargins :: Number -> Number -> Number -> Boolean
 isPastMargins minX maxX w = (50.0>minX) || (w-50.0)<maxX
 
@@ -62,8 +39,10 @@ computeDirection :: E.Direction
                  -> E.Direction
 computeDirection currDir _ [] = currDir
 computeDirection currDir w invaders =
-  let minX = fromJust $ minInvaderX invaders
-      maxX = fromJust $ maxInvaderX invaders
+  let h = fromJust $ head invaders
+      t = fromJust $ tail invaders
+      minX = foldl (\a i -> min a (i ^. I.x)) (h ^. I.x) t
+      maxX = foldl (\a i -> max a (i ^. I.x)) (h ^. I.x) t
       pastMargins = isPastMargins minX maxX w
   in go currDir pastMargins where
     go E.Left true  = E.Right
@@ -105,10 +84,6 @@ movePatrol gRef = do
       currDir      = g ^. G.patrolDirection
       currDx       = g ^. G.patrolDx
       currInvaders = g ^. G.invaders
-
-      minX         = fromJust $ minInvaderX currInvaders
-      maxX         = fromJust $ maxInvaderX currInvaders
-      pastMargins  = isPastMargins minX maxX w
 
       newDir       = computeDirection currDir w currInvaders
       newDx        = computeDx newDir currDir currDx
