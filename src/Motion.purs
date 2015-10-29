@@ -18,6 +18,7 @@ import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
+import Util ( (&) )
 
 -- import Control.Monad.Eff.Console ( CONSOLE() )
 -- import Control.Monad.Eff.Console.Unsafe ( logAny )
@@ -68,13 +69,6 @@ moveInvader :: I.Invader
             -> I.Invader
 moveInvader invader newDx newDy = invader # I.x +~ newDx
                                           & I.y +~ newDy
-
--- This combinator is used below to allow for chaining
--- of lens operations. The implementation was taken directly from here:
---
--- https://hackage.haskell.org/package/lens-4.13/docs/Control-Lens-Lens.html#g:4
-(&) :: forall a b. a -> (a -> b) -> b
-(&) = flip ($)
 
 movePatrol :: forall g eff. STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game

@@ -10,6 +10,7 @@ import Control.Monad.ST ( ST(), STRef()
 import Data.Array ( filter )
 import Optic.Core ( (^.), (.~), (+~) )
 
+import qualified Collision as C
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Motion as M
@@ -30,6 +31,7 @@ update :: forall eff g. STRef g G.Game
               -- , console :: CONSOLE
               | eff ) Unit
 update gRef = do
+  C.checkInvadersShot gRef
   M.movePlayerBullets gRef
   M.movePatrol gRef
   removeOffscreenPlayerBullets gRef

@@ -1,6 +1,8 @@
 module Entities.Invader where
 
-import Optic.Core ( lens )
+import Prelude ( Eq, (==) )
+
+import Optic.Core ( lens, (^.) )
 
 data Status = Alive
             | Exploding
@@ -21,6 +23,9 @@ idx = lens (\(Invader i) -> i.idx)
            (\(Invader i) idx' -> Invader (i { idx = idx' }))
 status = lens (\(Invader i) -> i.status)
               (\(Invader i) status' -> Invader (i { status = status' }))
+
+instance eqInvader :: Eq Invader where
+  eq i1 i2 = i1^.idx == i2^.idx
 
 makeInvader x y idx = Invader
   { x: x

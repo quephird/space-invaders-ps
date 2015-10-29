@@ -22,7 +22,7 @@ import qualified KeyHandler as K
 import qualified Render as R
 import qualified Update as U
 
--- import Control.Monad.Eff.Console ( CONSOLE() )
+import Control.Monad.Eff.Console ( CONSOLE() )
 
 gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
