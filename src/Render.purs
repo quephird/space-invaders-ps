@@ -35,7 +35,7 @@ renderScore :: forall eff g. Context2D
                    , st :: ST g | eff ) Unit
 renderScore ctx g = do
   setFillStyle "#7700FF" ctx
-  setFont "36pt Courier" ctx
+  setFont "32pt Courier" ctx
   fillText ctx
            (show $ g ^. G.score)
            50.0

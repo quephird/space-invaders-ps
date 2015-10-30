@@ -1,15 +1,15 @@
 module Collision where
 
-import Prelude ( (#), ($), (-), (&&), (<)
+import Prelude ( (#), ($), (*), (-), (&&), (<)
                , bind, map, return )
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( (\\), filter )
+import Data.Array ( (\\), filter, length )
 import Data.Tuple ( Tuple(..) )
 import Math ( abs )
-import Optic.Core ( (^.), (.~) )
+import Optic.Core ( (^.), (.~), (+~) )
 
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
@@ -32,13 +32,12 @@ checkInvadersShot :: forall eff g. STRef g G.Game
 checkInvadersShot gRef = do
   g <- readSTRef gRef
 
-  -- Get bullets
-  -- Get invaders
+  -- Get current bullets and invaders
   -- Determine pairs of colliding bullets and invaders
-  -- Remove bullets
-  -- Remove invaders
-  -- Add sound events for each shot invader
+  -- Remove dead bullets and invaders
   -- Add points for each shot invader
+
+  -- TODO: Add sound events for each shot invader
 
   let currBullets = g ^. G.playerBullets
       currInvaders = g ^. G.invaders
@@ -47,10 +46,13 @@ checkInvadersShot gRef = do
         b <- currBullets
         return $ Tuple i b
 
+      -- TODO: Think about how scoring should be best handled.
       deadInvaders = map (\(Tuple i _) -> i) collisions
       deadBullets  = map (\(Tuple _ b) -> b) collisions
       newInvaders  = currInvaders \\ deadInvaders
       newBullets   = currBullets \\ deadBullets
+      newPoints    = 100 * length deadInvaders
 
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
-                            & G.playerBullets .~ newBullets)
+                            & G.playerBullets .~ newBullets
+                            & G.score +~ newPoints)
