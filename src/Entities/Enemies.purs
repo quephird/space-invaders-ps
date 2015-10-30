@@ -18,7 +18,8 @@ instance eqDirection :: Eq Direction where
   eq Right Right = true
   eq _ _         = false
 
-
+-- TODO: Need to switch from product to record type.
+--       Need to introduce dx property and lens.
 data Enemies = Patrol (Array I.Invader) Direction Number
              | BossLevel B.Boss
 

@@ -70,6 +70,7 @@ moveInvader :: I.Invader
 moveInvader invader newDx newDy = invader # I.x +~ newDx
                                           & I.y +~ newDy
 
+-- TODO: Need to modify dx according to the number of remaining invaders.
 movePatrol :: forall g eff. STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game
 movePatrol gRef = do

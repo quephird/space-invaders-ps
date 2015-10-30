@@ -26,6 +26,7 @@ data Status = GameOver
             | Playing
             | Waiting
 
+-- TODO: Need to introduce current level property.
 data Game = Game
   { w :: Number
   , h :: Number
@@ -95,8 +96,8 @@ makeGame w h = do
     , lives:     3
     , player:    player
     , playerBullets: []
-    , sprites: sprites
-    , enemies: E.makeRegularLevel
+    , sprites:   sprites
+    , enemies:   E.makeRegularLevel
     }
 
 createPlayerBullet :: forall g eff. STRef g Game
