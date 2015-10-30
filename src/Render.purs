@@ -2,7 +2,7 @@ module Render where
 
 import Prelude ( Unit()
                , ($), (+), (-), (*)
-               , bind, mod, return, unit )
+               , bind, mod, return, show, unit )
 
 import Control.Monad.Eff ( Eff()
                          , forE, foreachE )
@@ -18,8 +18,8 @@ import Data.Time ( Seconds(..), toSeconds )
 import DOM.Timer ( Timeout(), Timer()
                  , timeout )
 import Graphics.Canvas ( Canvas(), CanvasImageSource(), Context2D(), Rectangle()
-                       , drawImage, fillRect, getCanvasElementById
-                       , getContext2D, rect, setFillStyle
+                       , drawImage, fillRect, fillText, getCanvasElementById
+                       , getContext2D, rect, setFillStyle, setFont
                        )
 import Graphics.Canvas.Image ( drawImageCentered, getWidth )
 import Math ( floor )
@@ -29,20 +29,32 @@ import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
 
+renderScore :: forall eff g. Context2D
+            -> G.Game
+            -> Eff ( canvas :: Canvas
+                   , st :: ST g | eff ) Unit
+renderScore ctx g = do
+  setFillStyle "#7700FF" ctx
+  setFont "36pt Courier" ctx
+  fillText ctx
+           (show $ g ^. G.score)
+           50.0
+           40.0
+  return unit
+
 renderLives :: forall eff g. Context2D
             -> G.Game
             -> Eff ( canvas :: Canvas
-                    , st :: ST g | eff ) Unit
+                   , st :: ST g | eff ) Unit
 renderLives ctx g = do
   let lives = g ^. G.lives
   forE 0.0 (toNumber lives) $ \i -> do
     drawImageCentered ctx
                       (g ^. G.lifeSprite)
-                      (0.95 * g ^. G.w - i * 32.0)
-                      (0.05 * g ^. G.h)
+                      (g ^. G.w - i * 32.0 - 50.0)
+                      30.0
     return unit
   return unit
-
 
 renderEnemies :: forall eff g. Context2D
               -> G.Game
@@ -108,8 +120,8 @@ render gRef = do
                  , w: g ^. G.w
                  , h: g ^. G.h}
 
-    -- renderScore ctx g
-    foreachE [ renderLives
+    foreachE [ renderScore
+             , renderLives
              , renderEnemies
              , renderPlayer
              , renderPlayerBullets
