@@ -93,7 +93,12 @@ render gRef = do
                  , w: 800.0
                  , h: 600.0}
 
-    renderEnemies ctx g
-    renderPlayer ctx g
-    renderPlayerBullets ctx g
+    -- renderScore ctx g
+    foreachE [ renderEnemies
+             , renderPlayer
+             , renderPlayerBullets
+             ] (\f -> f ctx g)
+    -- renderEnemies ctx g
+    -- renderPlayer ctx g
+    -- renderPlayerBullets ctx g
     render gRef
