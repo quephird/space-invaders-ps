@@ -31,6 +31,8 @@ data Game = Game
   , h :: Number
   , startTime :: Milliseconds
   , status :: Status
+  , score :: Int
+  , lives :: Int
   , player :: P.Player
   , playerBullets :: Array B.Bullet
   , sprites :: S.Sprites
@@ -43,6 +45,8 @@ h = lens (\(Game g) -> g.h)
          (\(Game g) h' -> Game (g { h = h' }))
 startTime = lens (\(Game g) -> g.startTime)
                  (\(Game g) startTime' -> Game (g { startTime = startTime' }))
+lives = lens (\(Game g) -> g.lives)
+             (\(Game g) lives' -> Game (g { lives = lives' }))
 player = lens (\(Game g) -> g.player)
               (\(Game g) player' -> Game (g { player = player' }))
 playerBullets = lens (\(Game g) -> g.playerBullets)
@@ -56,18 +60,21 @@ playerX :: Lens Game Game Number Number
 playerX = player .. P.x
 playerY :: Lens Game Game Number Number
 playerY = player .. P.y
-playerSprite :: Lens Game Game CanvasImageSource CanvasImageSource
-playerSprite = sprites .. S.player
-playerBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
-playerBulletSprite = sprites .. S.playerBullet
-invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
-invaderSprites = sprites .. S.invader
 invaders :: Lens Game Game (Array I.Invader) (Array I.Invader)
 invaders = enemies .. E.invaders
 patrolDirection :: Lens Game Game E.Direction E.Direction
 patrolDirection = enemies .. E.direction
 patrolDx :: Lens Game Game Number Number
 patrolDx = enemies .. E.dx
+
+lifeSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+lifeSprite = sprites .. S.lives
+playerSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+playerSprite = sprites .. S.player
+playerBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+playerBulletSprite = sprites .. S.playerBullet
+invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
+invaderSprites = sprites .. S.invader
 
 makeGame :: forall eff. Number
          -> Number
@@ -78,11 +85,13 @@ makeGame w h = do
   sprites <- S.loadSprites
   startTime <- nowEpochMilliseconds
   return $ Game
-    { w: w
-    , h: h
+    { w:         w
+    , h:         h
     , startTime: startTime
-    , status: Waiting
-    , player: player
+    , status:    Waiting
+    , score:     0
+    , lives:     3
+    , player:    player
     , playerBullets: []
     , sprites: sprites
     , enemies: E.makeRegularLevel

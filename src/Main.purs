@@ -42,7 +42,7 @@ main :: forall eff g. Eff ( canvas :: Canvas
                           , timer :: Timer | eff ) Timeout
 main = do
   globalWindow <- window
-  g <- G.makeGame 800.0 600.0
+  g <- G.makeGame 800.0 750.0
   gRef <- newSTRef g
 
   addEventListener (EventType "keydown")
