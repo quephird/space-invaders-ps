@@ -16,10 +16,12 @@ import Optic.Core ( Lens()
                   , (..), (^.), (%~)
                   , lens )
 
+import qualified Audio as A
 import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Invader as I
 import qualified Entities.Player as P
+import qualified Entities.Sounds as O
 import qualified Entities.Sprites as S
 
 data Status = GameOver
@@ -36,8 +38,9 @@ data Game = Game
   , lives :: Int
   , player :: P.Player
   , playerBullets :: Array B.Bullet
-  , sprites :: S.Sprites
   , enemies :: E.Enemies
+  , sprites :: S.Sprites
+  , sounds :: O.Sounds
   }
 
 w = lens (\(Game g) -> g.w)
@@ -54,10 +57,12 @@ player = lens (\(Game g) -> g.player)
               (\(Game g) player' -> Game (g { player = player' }))
 playerBullets = lens (\(Game g) -> g.playerBullets)
                      (\(Game g) playerBullets' -> Game (g { playerBullets = playerBullets' }))
-sprites = lens (\(Game g) -> g.sprites)
-               (\(Game g) sprites' -> Game (g { sprites = sprites' }))
 enemies = lens (\(Game g) -> g.enemies)
                (\(Game g) enemies' -> Game (g { enemies = enemies' }))
+sprites = lens (\(Game g) -> g.sprites)
+               (\(Game g) sprites' -> Game (g { sprites = sprites' }))
+sounds = lens (\(Game g) -> g.sounds)
+              (\(Game g) sounds' -> Game (g { sounds = sounds' }))
 
 playerX :: Lens Game Game Number Number
 playerX = player .. P.x
@@ -79,6 +84,9 @@ playerBulletSprite = sprites .. S.playerBullet
 invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
 invaderSprites = sprites .. S.invader
 
+newPlayerBulletSound :: Lens Game Game A.Sound A.Sound
+newPlayerBulletSound = sounds .. O.newPlayerBullet
+
 makeGame :: forall eff. Number
          -> Number
          -> Eff ( canvas :: Canvas
@@ -86,6 +94,7 @@ makeGame :: forall eff. Number
 makeGame w h = do
   let player = P.makePlayer (0.5*w) (0.9*h)
   sprites <- S.loadSprites
+  sounds <- O.loadAllSounds
   startTime <- nowEpochMilliseconds
   return $ Game
     { w:         w
@@ -96,8 +105,9 @@ makeGame w h = do
     , lives:     3
     , player:    player
     , playerBullets: []
-    , sprites:   sprites
     , enemies:   E.makeRegularLevel
+    , sprites:   sprites
+    , sounds:    sounds
     }
 
 createPlayerBullet :: forall g eff. STRef g Game

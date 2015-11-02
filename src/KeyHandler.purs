@@ -1,7 +1,7 @@
 module KeyHandler where
 
 import Prelude ( ($), (#)
-               , return )
+               , bind, return )
 
 import Control.Monad.Eff ( Eff(), Pure() )
 import Control.Monad.Eff.Class ( liftEff )
@@ -10,10 +10,11 @@ import Control.Monad.ST ( ST(), STRef()
 import DOM.Event.EventTarget ( EventListener()
                              , eventListener )
 import DOM.Event.Types ( Event() )
-import Optic.Core ( (+~) )
+import Optic.Core ( (^.), (+~) )
 import Unsafe.Coerce ( unsafeCoerce )
 
 import qualified Entities.Game as G
+import qualified Audio as A
 
 data Key = Left | Right | SpaceBar | Other
 
@@ -32,7 +33,13 @@ respondToKey :: forall g eff. Key
              -> Eff ( st :: ST g | eff ) G.Game
 respondToKey Left gRef = movePlayer Left gRef
 respondToKey Right gRef = movePlayer Right gRef
-respondToKey SpaceBar gRef = G.createPlayerBullet gRef
+-- TODO: UUUGGGHHHHHH... need to move sound implementation elsewhere
+--         but also avoid problem of circular dependencies.
+respondToKey SpaceBar gRef = do
+-- A.playNewPlayerBulletSound gRef
+  g <- readSTRef gRef
+  A.playSound $ g ^. G.newPlayerBulletSound
+  G.createPlayerBullet gRef
 respondToKey _ _ = readSTRef gRef
 
 type KeyboardEventMini =

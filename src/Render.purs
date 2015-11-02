@@ -56,6 +56,9 @@ renderLives ctx g = do
     return unit
   return unit
 
+-- TODO: Need to have separate implementations for Patrol and Boss types.
+--       Need to alternate invader sprites faster as the number of them
+--         remaining gets smaller.
 renderEnemies :: forall eff g. Context2D
               -> G.Game
               -> Eff ( canvas :: Canvas
