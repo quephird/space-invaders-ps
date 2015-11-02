@@ -1,4 +1,4 @@
-module KeyHandler where
+module Handlers.Keyboard where
 
 import Prelude ( ($), (#)
                , bind, return )
@@ -14,7 +14,7 @@ import Optic.Core ( (^.), (+~) )
 import Unsafe.Coerce ( unsafeCoerce )
 
 import qualified Entities.Game as G
-import qualified Audio as A
+import qualified Handlers.Sound as S
 
 data Key = Left | Right | SpaceBar | Other
 
@@ -33,12 +33,8 @@ respondToKey :: forall g eff. Key
              -> Eff ( st :: ST g | eff ) G.Game
 respondToKey Left gRef = movePlayer Left gRef
 respondToKey Right gRef = movePlayer Right gRef
--- TODO: UUUGGGHHHHHH... need to move sound implementation elsewhere
---         but also avoid problem of circular dependencies.
 respondToKey SpaceBar gRef = do
--- A.playNewPlayerBulletSound gRef
-  g <- readSTRef gRef
-  A.playSound $ g ^. G.newPlayerBulletSound
+  S.playNewPlayerBulletSound gRef
   G.createPlayerBullet gRef
 respondToKey _ _ = readSTRef gRef
 

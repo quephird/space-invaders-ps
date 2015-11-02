@@ -1,7 +1,7 @@
 /* global exports */
 "use strict";
 
-// module Graphics.Canvas.Image
+// module Helpers.Image
 
 exports.makeCanvasImageSource = function(url) {
   return function() {

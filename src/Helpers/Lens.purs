@@ -1,4 +1,4 @@
-module Util where
+module Helpers.Lens where
 
 import Prelude ( ($), flip )
 

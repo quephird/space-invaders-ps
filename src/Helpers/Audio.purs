@@ -1,4 +1,4 @@
-module Audio where
+module Helpers.Audio where
 
 import Prelude ( Unit() )
 

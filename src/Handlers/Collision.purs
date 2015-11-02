@@ -1,4 +1,4 @@
-module Collision where
+module Handlers.Collision where
 
 import Prelude ( (#), ($), (*), (-), (&&), (<)
                , bind, map, return )
@@ -14,7 +14,7 @@ import Optic.Core ( (^.), (.~), (+~) )
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
-import Util ( (&) )
+import Helpers.Lens ( (&) )
 
 -- import Control.Monad.Eff.Console ( CONSOLE() )
 -- import Control.Monad.Eff.Console.Unsafe ( logAny )

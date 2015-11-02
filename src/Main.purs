@@ -18,8 +18,8 @@ import DOM.Timer ( Timeout(), Timer()
 import Graphics.Canvas ( Canvas() )
 
 import qualified Entities.Game as G
-import qualified KeyHandler as K
-import qualified Render as R
+import qualified Handlers.Keyboard as K
+import qualified Handlers.Rendering as R
 import qualified Update as U
 
 import Control.Monad.Eff.Console ( CONSOLE() )

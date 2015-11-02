@@ -16,13 +16,13 @@ import Optic.Core ( Lens()
                   , (..), (^.), (%~)
                   , lens )
 
-import qualified Audio as A
 import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Invader as I
 import qualified Entities.Player as P
 import qualified Entities.Sounds as O
 import qualified Entities.Sprites as S
+import qualified Helpers.Audio as A
 
 data Status = GameOver
             | Playing

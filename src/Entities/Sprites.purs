@@ -7,7 +7,7 @@ import Control.Monad.Eff ( Eff() )
 import Graphics.Canvas ( Canvas(), CanvasImageSource() )
 import Optic.Core ( lens )
 
-import Graphics.Canvas.Image ( makeCanvasImageSource, getWidth )
+import Helpers.Image ( makeCanvasImageSource, getWidth )
 
 data Sprites = Sprites
   { player :: CanvasImageSource

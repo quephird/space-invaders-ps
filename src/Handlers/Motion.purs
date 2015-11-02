@@ -1,4 +1,4 @@
-module Motion where
+module Handlers.Motion where
 
 import Prelude ( Ordering(..), Unit()
                , ($), (#), (<$>), (<), (>), (-), (||), (==)
@@ -18,7 +18,7 @@ import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
-import Util ( (&) )
+import Helpers.Lens ( (&) )
 
 -- import Control.Monad.Eff.Console ( CONSOLE() )
 -- import Control.Monad.Eff.Console.Unsafe ( logAny )

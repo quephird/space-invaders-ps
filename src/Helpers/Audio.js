@@ -1,7 +1,7 @@
 /* global exports */
 "use strict";
 
-// module Audio
+// module Helpers.Audio
 
 exports.loadSound = function(url) {
   return function() {

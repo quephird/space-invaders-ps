@@ -1,4 +1,4 @@
-module Render where
+module Handlers.Rendering where
 
 import Prelude ( Unit()
                , ($), (+), (-), (*)
@@ -21,13 +21,13 @@ import Graphics.Canvas ( Canvas(), CanvasImageSource(), Context2D(), Rectangle()
                        , drawImage, fillRect, fillText, getCanvasElementById
                        , getContext2D, rect, setFillStyle, setFont
                        )
-import Graphics.Canvas.Image ( drawImageCentered, getWidth )
 import Math ( floor )
 import Optic.Core ( (^.) )
 
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
+import Helpers.Image ( drawImageCentered, getWidth )
 
 renderScore :: forall eff g. Context2D
             -> G.Game

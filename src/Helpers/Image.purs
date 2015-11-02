@@ -1,4 +1,4 @@
-module Graphics.Canvas.Image where
+module Helpers.Image where
 
 import Prelude ( ($), (-), (*) )
 
