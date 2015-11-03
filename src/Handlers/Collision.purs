@@ -1,18 +1,19 @@
 module Handlers.Collision where
 
-import Prelude ( (#), ($), (*), (-), (&&), (<)
-               , bind, map, return )
+import Prelude ( (#), ($), (*), (-), (&&), (<), (>)
+               , bind, map, otherwise, return )
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( (\\), filter, length )
+import Data.Array ( (\\), cons, filter, length )
 import Data.Tuple ( Tuple(..) )
 import Math ( abs )
 import Optic.Core ( (^.), (.~), (+~) )
 
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
+import qualified Entities.Event as V
 import qualified Entities.Invader as I
 import Helpers.Lens ( (&) )
 
@@ -27,20 +28,17 @@ instance shootableInvader :: Shootable I.Invader where
     abs(i^.I.x - b^.B.x) < 25.0 &&
     abs(i^.I.y - b^.B.y) < 25.0
 
+computeNewEvents :: Array V.Event -> Int -> Array V.Event
+computeNewEvents currEvents deadInvaderCount | deadInvaderCount > 0 = cons (V.Event V.InvaderShot V.New) currEvents
+                                             | otherwise = currEvents
+
 checkInvadersShot :: forall eff g. STRef g G.Game
                   -> Eff ( st :: ST g | eff ) G.Game
 checkInvadersShot gRef = do
   g <- readSTRef gRef
-
-  -- Get current bullets and invaders
-  -- Determine pairs of colliding bullets and invaders
-  -- Remove dead bullets and invaders
-  -- Add points for each shot invader
-
-  -- TODO: Add sound events for each shot invader
-
-  let currBullets = g ^. G.playerBullets
+  let currBullets  = g ^. G.playerBullets
       currInvaders = g ^. G.invaders
+      currEvents   = g ^. G.events
       collisions = filter (\(Tuple i b) -> isShot i b) $ do
         i <- currInvaders
         b <- currBullets
@@ -52,7 +50,9 @@ checkInvadersShot gRef = do
       newInvaders  = currInvaders \\ deadInvaders
       newBullets   = currBullets \\ deadBullets
       newPoints    = 100 * length deadInvaders
+      newEvents    = computeNewEvents currEvents $ length deadInvaders
 
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
                             & G.playerBullets .~ newBullets
-                            & G.score +~ newPoints)
+                            & G.score +~ newPoints
+                            & G.events .~ newEvents)

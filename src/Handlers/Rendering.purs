@@ -109,24 +109,21 @@ renderPlayerBullets ctx g = do
 render :: forall eff g. STRef g G.Game
        -> Eff ( canvas :: Canvas
               , now :: Now
-              , st :: ST g
-              , timer :: Timer | eff ) Timeout
+              , st :: ST g | eff ) Unit
 render gRef = do
   Just canvas <- getCanvasElementById "canvas"
   ctx <- getContext2D canvas
-  timeout 50 $ do
-    g <- readSTRef gRef
+  g <- readSTRef gRef
 
-    setFillStyle "#000000" ctx
-    fillRect ctx { x: 0.0
-                 , y: 0.0
-                 , w: g ^. G.w
-                 , h: g ^. G.h}
+  setFillStyle "#000000" ctx
+  fillRect ctx { x: 0.0
+               , y: 0.0
+               , w: g ^. G.w
+               , h: g ^. G.h}
 
-    foreachE [ renderScore
-             , renderLives
-             , renderEnemies
-             , renderPlayer
-             , renderPlayerBullets
-             ] (\f -> f ctx g)
-    render gRef
+  foreachE [ renderScore
+           , renderLives
+           , renderEnemies
+           , renderPlayer
+           , renderPlayerBullets
+           ] (\f -> f ctx g)

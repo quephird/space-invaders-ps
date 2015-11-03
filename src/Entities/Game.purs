@@ -18,6 +18,7 @@ import Optic.Core ( Lens()
 
 import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
+import qualified Entities.Event as V
 import qualified Entities.Invader as I
 import qualified Entities.Player as P
 import qualified Entities.Sounds as O
@@ -33,14 +34,15 @@ data Game = Game
   { w :: Number
   , h :: Number
   , startTime :: Milliseconds
-  , status :: Status
-  , score :: Int
-  , lives :: Int
-  , player :: P.Player
+  , status    :: Status
+  , score     :: Int
+  , lives     :: Int
+  , player    :: P.Player
   , playerBullets :: Array B.Bullet
-  , enemies :: E.Enemies
-  , sprites :: S.Sprites
-  , sounds :: O.Sounds
+  , enemies   :: E.Enemies
+  , events    :: Array V.Event
+  , sprites   :: S.Sprites
+  , sounds    :: O.Sounds
   }
 
 w = lens (\(Game g) -> g.w)
@@ -59,6 +61,9 @@ playerBullets = lens (\(Game g) -> g.playerBullets)
                      (\(Game g) playerBullets' -> Game (g { playerBullets = playerBullets' }))
 enemies = lens (\(Game g) -> g.enemies)
                (\(Game g) enemies' -> Game (g { enemies = enemies' }))
+events = lens (\(Game g) -> g.events)
+              (\(Game g) events' -> Game (g { events = events' }))
+
 sprites = lens (\(Game g) -> g.sprites)
                (\(Game g) sprites' -> Game (g { sprites = sprites' }))
 sounds = lens (\(Game g) -> g.sounds)
@@ -86,6 +91,8 @@ invaderSprites = sprites .. S.invader
 
 newPlayerBulletSound :: Lens Game Game A.Sound A.Sound
 newPlayerBulletSound = sounds .. O.newPlayerBullet
+invaderShotSound :: Lens Game Game A.Sound A.Sound
+invaderShotSound = sounds .. O.invaderShot
 
 makeGame :: forall eff. Number
          -> Number
@@ -106,6 +113,7 @@ makeGame w h = do
     , player:    player
     , playerBullets: []
     , enemies:   E.makeRegularLevel
+    , events:    []
     , sprites:   sprites
     , sounds:    sounds
     }

@@ -6,7 +6,7 @@ import Prelude ( Unit()
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
-                        , newSTRef )
+                        , newSTRef, readSTRef )
 import Data.Date ( Now() )
 import DOM ( DOM() )
 import DOM.Event.EventTarget ( addEventListener )
@@ -14,15 +14,18 @@ import DOM.Event.Types ( EventType(..) )
 import DOM.HTML ( window )
 import DOM.HTML.Types ( windowToEventTarget )
 import DOM.Timer ( Timeout(), Timer()
-                 , interval )
+                 , interval, timeout )
 import Graphics.Canvas ( Canvas() )
+import Optic.Core ( (^.) )
 
 import qualified Entities.Game as G
+import qualified Handlers.Event as V
 import qualified Handlers.Keyboard as K
 import qualified Handlers.Rendering as R
 import qualified Update as U
 
-import Control.Monad.Eff.Console ( CONSOLE() )
+-- import Control.Monad.Eff.Console ( CONSOLE() )
+-- import Control.Monad.Eff.Console.Unsafe ( logAny )
 
 gameLoop :: forall eff g. STRef g G.Game
          -> Eff ( canvas :: Canvas
@@ -31,8 +34,11 @@ gameLoop :: forall eff g. STRef g G.Game
                 , st :: ST g
                 , timer :: Timer | eff ) Timeout
 gameLoop gRef = do
-  interval 50 $ U.update gRef
-  R.render gRef
+  timeout 50 $ do
+    R.render gRef
+    V.processEvents gRef
+    V.clearHandledEvents gRef
+    gameLoop gRef
 
 main :: forall eff g. Eff ( canvas :: Canvas
                           -- , console :: CONSOLE
@@ -50,4 +56,5 @@ main = do
                    false
                    (windowToEventTarget globalWindow)
 
+  interval 50 $ U.update gRef
   gameLoop gRef
