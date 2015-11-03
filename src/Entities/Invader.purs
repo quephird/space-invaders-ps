@@ -5,8 +5,14 @@ import Prelude ( Eq, (==) )
 import Optic.Core ( lens, (^.) )
 
 data Status = Alive
-            | Exploding
+            | Shot
             | Dead
+
+instance eqStatus :: Eq Status where
+  eq Alive Alive = true
+  eq Shot  Shot  = true
+  eq Dead  Dead  = true
+  eq _     _     = false
 
 data Invader = Invader
   { x :: Number

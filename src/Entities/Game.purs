@@ -88,6 +88,10 @@ playerBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 playerBulletSprite = sprites .. S.playerBullet
 invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
 invaderSprites = sprites .. S.invader
+shotInvaderSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+shotInvaderSprite = sprites .. S.shotInvader
+deadInvaderSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+deadInvaderSprite = sprites .. S.deadInvader
 
 newPlayerBulletSound :: Lens Game Game A.Sound A.Sound
 newPlayerBulletSound = sounds .. O.newPlayerBullet

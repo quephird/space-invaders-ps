@@ -56,6 +56,14 @@ renderLives ctx g = do
     return unit
   return unit
 
+-- renderInvader :: forall eff g. Context2D
+--              -> I.Invader
+--              -> Eff ( canvas :: Canvas
+--                     , now :: Now
+--                     , st :: ST g | eff ) Unit
+-- renderInvader status | I.Status == Alive = do
+--                          | I.Status ==
+
 -- TODO: Need to have separate implementations for Patrol and Boss types.
 --       Need to alternate invader sprites faster as the number of them
 --         remaining gets smaller.
@@ -66,21 +74,28 @@ renderEnemies :: forall eff g. Context2D
                      , st :: ST g | eff ) Unit
 renderEnemies ctx g = do
   currentTime <- nowEpochMilliseconds
-  let invaderSprites = g ^. G.invaderSprites
-      invaders = g ^. G.invaders
-      secondsIntoGame = toSeconds $ currentTime - (g ^. G.startTime)
+  let invaderSprites    = g ^. G.invaderSprites
+      shotInvaderSprite = g ^. G.shotInvaderSprite
+      deadInvaderSprite = g ^. G.deadInvaderSprite
+      invaders          = g ^. G.invaders
+      secondsIntoGame   = toSeconds $ currentTime - (g ^. G.startTime)
+      chooseSprite status (Seconds s) idx =
+        case status of
+          I.Alive ->
+            let idx' = toNumber idx
+                spriteIdx = (fromJust $ fromNumber $ floor $ idx' + s * 2.0) `mod` 2
+            in
+              fromJust $ invaderSprites !! spriteIdx
+          I.Shot -> shotInvaderSprite
+          I.Dead -> deadInvaderSprite
+
   foreachE invaders $ \i -> do
-    let sprite = chooseSprite invaderSprites secondsIntoGame (i ^. I.idx)
+    let sprite = chooseSprite (i ^. I.status) secondsIntoGame (i ^. I.idx)
     drawImageCentered ctx
                       sprite
                       (i ^. I.x)
                       (i ^. I.y)
-    return unit where
-      chooseSprite sprites (Seconds s) idx =
-        let idx' = toNumber idx
-            spriteIdx = (fromJust $ fromNumber $ floor $ idx' + s * 2.0) `mod` 2
-        in
-          fromJust $ sprites !! spriteIdx
+    return unit
 
 renderPlayer :: forall eff g. Context2D
              -> G.Game

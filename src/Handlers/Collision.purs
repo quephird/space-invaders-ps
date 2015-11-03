@@ -1,12 +1,12 @@
 module Handlers.Collision where
 
-import Prelude ( (#), ($), (*), (-), (&&), (<), (>)
+import Prelude ( (#), ($), (*), (-), (&&), (<), (>), (==)
                , bind, map, otherwise, return )
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( (\\), cons, filter, length )
+import Data.Array ( (\\), concat, cons, filter, length, nub )
 import Data.Tuple ( Tuple(..) )
 import Math ( abs )
 import Optic.Core ( (^.), (.~), (+~) )
@@ -25,12 +25,13 @@ class Shootable a where
 
 instance shootableInvader :: Shootable I.Invader where
   isShot i b =
+    i^.I.status == I.Alive &&
     abs(i^.I.x - b^.B.x) < 25.0 &&
     abs(i^.I.y - b^.B.y) < 25.0
 
 computeNewEvents :: Array V.Event -> Int -> Array V.Event
-computeNewEvents currEvents deadInvaderCount | deadInvaderCount > 0 = cons (V.Event V.InvaderShot V.New) currEvents
-                                             | otherwise = currEvents
+computeNewEvents currEvents invaderCount | invaderCount > 0 = cons (V.Event V.InvaderShot V.New) currEvents
+                                         | otherwise = currEvents
 
 checkInvadersShot :: forall eff g. STRef g G.Game
                   -> Eff ( st :: ST g | eff ) G.Game
@@ -39,18 +40,19 @@ checkInvadersShot gRef = do
   let currBullets  = g ^. G.playerBullets
       currInvaders = g ^. G.invaders
       currEvents   = g ^. G.events
-      collisions = filter (\(Tuple i b) -> isShot i b) $ do
+      collisions   = filter (\(Tuple i b) -> isShot i b) $ do
         i <- currInvaders
         b <- currBullets
         return $ Tuple i b
 
       -- TODO: Think about how scoring should be best handled.
-      deadInvaders = map (\(Tuple i _) -> i) collisions
-      deadBullets  = map (\(Tuple _ b) -> b) collisions
-      newInvaders  = currInvaders \\ deadInvaders
-      newBullets   = currBullets \\ deadBullets
-      newPoints    = 100 * length deadInvaders
-      newEvents    = computeNewEvents currEvents $ length deadInvaders
+      shotInvaders  = nub $ map (\(Tuple i _) -> i # I.status .~ I.Shot) collisions
+      otherInvaders = currInvaders \\ shotInvaders
+      deadBullets   = map (\(Tuple _ b) -> b) collisions
+      newInvaders   = concat $ [otherInvaders, shotInvaders]
+      newBullets    = currBullets \\ deadBullets
+      newPoints     = 100 * length shotInvaders
+      newEvents     = computeNewEvents currEvents $ length shotInvaders
 
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
                             & G.playerBullets .~ newBullets
