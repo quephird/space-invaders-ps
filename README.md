@@ -32,4 +32,4 @@ This is a rewrite of my space invaders game that I wrote in Clojure; you can see
 
 ### Playing it live right now
 
-Welp, go right [here](http://quephird.github.io/games/space-invaders/html/Main.html).
+Welp, go right [here](http://quephird.github.io/games/space-invaders/html/Main.html)!

@@ -4,7 +4,6 @@ import Prelude ( ($), (#)
                , bind, return )
 
 import Control.Monad.Eff ( Eff(), Pure() )
-import Control.Monad.Eff.Class ( liftEff )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import DOM.Event.EventTarget ( EventListener()

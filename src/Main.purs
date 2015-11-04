@@ -13,6 +13,9 @@ import DOM.Event.EventTarget ( addEventListener )
 import DOM.Event.Types ( EventType(..) )
 import DOM.HTML ( window )
 import DOM.HTML.Types ( windowToEventTarget )
+import DOM.Node.NonElementParentNode ( getElementById )
+import DOM.Node.Types ( ElementId(..)
+                      , elementToEventTarget )
 import DOM.Timer ( Timeout(), Timer()
                  , interval, timeout )
 import Graphics.Canvas ( Canvas() )
@@ -47,10 +50,10 @@ main :: forall eff g. Eff ( canvas :: Canvas
                           , st :: ST g
                           , timer :: Timer | eff ) Timeout
 main = do
-  globalWindow <- window
   g <- G.makeGame 800.0 750.0
   gRef <- newSTRef g
 
+  globalWindow <- window
   addEventListener (EventType "keydown")
                    (K.onKeydown gRef)
                    false

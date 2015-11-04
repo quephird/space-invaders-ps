@@ -19,7 +19,6 @@ instance eqDirection :: Eq Direction where
   eq _ _         = false
 
 -- TODO: Need to switch from product to record type.
---       Need to introduce dx property and lens.
 data Enemies = Patrol (Array I.Invader) Direction Number
              | BossLevel B.Boss
 
@@ -32,7 +31,7 @@ dx = lens (\(Patrol _ _ dx) -> dx)
 
 makeRegularLevel :: Enemies
 makeRegularLevel =
-  Patrol makeInvaders Right 5.0 where
+  Patrol makeInvaders Right 2.0 where
     makeInvaders = do
       x <- 0 .. 7
       y <- 0 .. 2

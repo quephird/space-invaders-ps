@@ -1,14 +1,15 @@
 module Handlers.Motion where
 
 import Prelude ( Ordering(..), Unit()
-               , ($), (#), (<$>), (<), (>), (-), (||), (==)
+               , ($), (#), (<$>), (<), (>), (+), (-), (*), (/), (||), (==), (<=)
                , bind, compare, flip, map, negate, otherwise, return )
 
 import Control.Monad.Eff ( Eff() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( head, tail )
+import Data.Array ( (!!), findLastIndex, head, length, tail )
 import Data.Foldable ( foldl )
+import Data.Int ( toNumber )
 import Data.Maybe ( Maybe(..) )
 import Data.Maybe.Unsafe ( fromJust )
 import Math ( max, min )
@@ -53,9 +54,14 @@ computeDirection currDir w invaders =
 computeDx :: E.Direction
           -> E.Direction
           -> Number
+          -> Int
           -> Number
-computeDx newDir currDir currDx | newDir == currDir = currDx
-                                | otherwise         = negate currDx
+computeDx newDir currDir currDx invaderCount =
+  let ns    = [1,2,3,4,6,8,12]
+      idx   = fromJust $ findLastIndex (\n -> n <= invaderCount) ns
+  in toNumber $ 24 / (fromJust $ ns !! idx) * (sign newDir) where
+    sign E.Left = -1
+    sign E.Right = 1
 
 computeDy :: E.Direction
           -> E.Direction
@@ -70,7 +76,6 @@ moveInvader :: I.Invader
 moveInvader invader newDx newDy = invader # I.x +~ newDx
                                           & I.y +~ newDy
 
--- TODO: Need to modify dx according to the number of remaining invaders.
 movePatrol :: forall g eff. STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game
 movePatrol gRef = do
@@ -81,7 +86,7 @@ movePatrol gRef = do
       currInvaders = g ^. G.invaders
 
       newDir       = computeDirection currDir w currInvaders
-      newDx        = computeDx newDir currDir currDx
+      newDx        = computeDx newDir currDir currDx $ length currInvaders
       newDy        = computeDy newDir currDir
       newInvaders  = map (\i -> moveInvader i newDx newDy) currInvaders
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
