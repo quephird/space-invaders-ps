@@ -29,3 +29,7 @@ This is a rewrite of my space invaders game that I wrote in Clojure; you can see
   ```
 
 * Open the main HTML file in the browser by navigating to ``$PROJECT_DIRECTORY/html/Main.html`.
+
+### Playing it live right now
+
+Welp, go right [here](http://quephird.github.io/games/space-invaders/html/Main.html).
