@@ -1,0 +1,29 @@
+{
+  "name": "space-invaders-ps",
+  "version": "1.0.0",
+  "description": "Space Invaders in PureScript",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "postinstall": "pulp dep install",
+    "prepublish": "pulp build -O --to dist/Main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quephird/space-invaders-ps.git"
+  },
+  "keywords": [
+    "purescript"
+  ],
+  "author": "Danielle Kefford <danielle_kefford@hotmail.com>",
+  "bugs": {
+    "url": "https://github.com/quephird/space-invaders-ps/issues"
+  },
+  "homepage": "https://github.com/quephird/space-invaders-ps#readme",
+  "dependencies": {
+    "pulp": "git+https://github.com/bodil/pulp.git#7e70ab96ef4d948ff6b5ef9ef8e72cfcd5d3a4c7",
+    "purescript": "^0.7.4"
+  }
+}
