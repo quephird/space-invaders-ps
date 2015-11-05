@@ -13,7 +13,7 @@ import Data.Time ( Milliseconds() )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
 import Optic.Core ( Lens()
-                  , (..), (^.), (%~)
+                  , (..), (^.), (.~), (%~)
                   , lens )
 
 import qualified Entities.Bullet as B
@@ -51,6 +51,8 @@ h = lens (\(Game g) -> g.h)
          (\(Game g) h' -> Game (g { h = h' }))
 startTime = lens (\(Game g) -> g.startTime)
                  (\(Game g) startTime' -> Game (g { startTime = startTime' }))
+status = lens (\(Game g) -> g.status)
+              (\(Game g) status' -> Game (g { status = status' }))
 score = lens (\(Game g) -> g.score)
              (\(Game g) score' -> Game (g { score = score' }))
 lives = lens (\(Game g) -> g.lives)
@@ -121,6 +123,12 @@ makeGame w h = do
     , sprites:   sprites
     , sounds:    sounds
     }
+
+startGame :: forall g eff. STRef g Game
+          -> Eff ( st :: ST g | eff ) Game
+startGame gRef = do
+  g <- readSTRef gRef
+  modifySTRef gRef (\g -> g # status .~ Playing)
 
 createPlayerBullet :: forall g eff. STRef g Game
                    -> Eff ( st :: ST g | eff ) Game

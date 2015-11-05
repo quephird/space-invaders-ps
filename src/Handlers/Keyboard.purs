@@ -15,7 +15,7 @@ import Unsafe.Coerce ( unsafeCoerce )
 import qualified Entities.Game as G
 import qualified Handlers.Sound as S
 
-data Key = Left | Right | SpaceBar | Other
+data Key = Left | Right | SpaceBar | S | Other
 
 movePlayer :: forall g eff. Key
            -> STRef g G.Game
@@ -28,14 +28,21 @@ movePlayer key gRef = do
   modifySTRef gRef (\g -> g # G.playerX +~ dx)
 
 respondToKey :: forall g eff. Key
+             -> G.Status
              -> STRef g G.Game
              -> Eff ( st :: ST g | eff ) G.Game
-respondToKey Left gRef = movePlayer Left gRef
-respondToKey Right gRef = movePlayer Right gRef
-respondToKey SpaceBar gRef = do
+respondToKey Left G.Playing gRef = movePlayer Left gRef
+
+respondToKey Right G.Playing gRef = movePlayer Right gRef
+
+respondToKey SpaceBar G.Playing gRef = do
   S.playNewPlayerBulletSound gRef
   G.createPlayerBullet gRef
-respondToKey _ _ = readSTRef gRef
+
+respondToKey S G.Waiting gRef = do
+  G.startGame gRef
+
+respondToKey _ _ _ = readSTRef gRef
 
 type KeyboardEventMini =
   { keyCode :: Int
@@ -46,11 +53,14 @@ eventToKeyboardEvent = unsafeCoerce
 onKeydown :: forall g eff. STRef g G.Game
           -> EventListener ( st :: ST g | eff )
 onKeydown gRef = eventListener $ \evt -> do
-  let keyboardEvent = eventToKeyboardEvent evt
+  g <- readSTRef gRef
+  let gameStatus = g ^. G.status
+      keyboardEvent = eventToKeyboardEvent evt
       code = keyboardEvent.keyCode
       key = case code of
               32 -> SpaceBar
               37 -> Left
               39 -> Right
+              83 -> S
               _  -> Other
-  respondToKey key gRef
+  respondToKey key gameStatus gRef

@@ -40,14 +40,25 @@ removeOffscreenPlayerBullets gRef = do
       newPlayerBullets = filter (\b -> b ^. B.y > -10.0) playerBullets
   modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets)
 
-update :: forall eff g. STRef g G.Game
-       -> Eff ( st :: ST g
-              -- , console :: CONSOLE
-              | eff ) Unit
-update gRef = do
+update' G.Playing gRef = do
   C.checkInvadersShot gRef
   M.movePlayerBullets gRef
   M.movePatrol gRef
   updateInvaderStatus gRef
   removeOffscreenPlayerBullets gRef
   return unit
+
+update' G.Waiting gRef = do
+  return unit
+
+update' G.GameOver gRef = do
+  return unit
+
+update :: forall eff g. STRef g G.Game
+       -> Eff ( st :: ST g
+              -- , console :: CONSOLE
+              | eff ) Unit
+update gRef = do
+  g <- readSTRef gRef
+  let gameStatus = g ^. G.status
+  update' gameStatus gRef

@@ -121,11 +121,12 @@ renderPlayerBullets ctx g = do
     return unit
   return unit
 
-render :: forall eff g. STRef g G.Game
-       -> Eff ( canvas :: Canvas
-              , now :: Now
-              , st :: ST g | eff ) Unit
-render gRef = do
+render' :: forall eff g. G.Status
+        -> STRef g G.Game
+        -> Eff ( canvas :: Canvas
+               , now :: Now
+               , st :: ST g | eff ) Unit
+render' G.Playing gRef = do
   Just canvas <- getCanvasElementById "canvas"
   ctx <- getContext2D canvas
   g <- readSTRef gRef
@@ -142,3 +143,40 @@ render gRef = do
            , renderPlayer
            , renderPlayerBullets
            ] (\f -> f ctx g)
+
+render' G.Waiting gRef = do
+  Just canvas <- getCanvasElementById "canvas"
+  ctx <- getContext2D canvas
+  g <- readSTRef gRef
+
+  setFillStyle "#000000" ctx
+  fillRect ctx { x: 0.0
+               , y: 0.0
+               , w: g ^. G.w
+               , h: g ^. G.h}
+
+  setFont "40pt Courier" ctx
+  let allText = [ { color: "#FFFFFF", text: "main =", x: 50.0, y: 200.0 }
+                , { color: "#FF00FF", text: "do", x: 275.0, y: 200.0 }
+                , { color: "#FFFFFF", text: "spaceInvaders `in`", x: 100.0, y: 250.0 }
+                , { color: "#FFFFFF", text: "pureScript", x: 150.0, y: 300.0 }
+                , { color: "#FFFFFF", text: "respondTo", x: 50.0, y: 400.0 }
+                , { color: "#CC0000", text: "S", x: 375.0, y: 400.0 }
+                , { color: "#FFFFFF", text: "= startGame", x: 435.0, y: 400.0 }
+                , { color: "#FFFFFF", text: "respondTo _ =", x: 50.0, y: 450.0 }
+                , { color: "#FFFFFF", text: "stareAtThisScreen", x: 100.0, y: 500.0 }
+                ]
+  foreachE allText $ \t -> do
+    setFillStyle t.color ctx
+    fillText ctx t.text t.x t.y
+    return unit
+  return unit
+
+render :: forall eff g. STRef g G.Game
+       -> Eff ( canvas :: Canvas
+              , now :: Now
+              , st :: ST g | eff ) Unit
+render gRef = do
+  g <- readSTRef gRef
+  let gameStatus = g ^. G.status
+  render' gameStatus gRef
