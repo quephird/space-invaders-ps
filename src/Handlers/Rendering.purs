@@ -56,14 +56,6 @@ renderLives ctx g = do
     return unit
   return unit
 
--- renderInvader :: forall eff g. Context2D
---              -> I.Invader
---              -> Eff ( canvas :: Canvas
---                     , now :: Now
---                     , st :: ST g | eff ) Unit
--- renderInvader status | I.Status == Alive = do
---                          | I.Status ==
-
 -- TODO: Need to have separate implementations for Patrol and Boss types.
 --       Need to alternate invader sprites faster as the number of them
 --         remaining gets smaller.

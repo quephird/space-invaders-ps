@@ -19,6 +19,7 @@ newPlayerBullet = lens (\(Sounds s) -> s.newPlayerBullet)
 invaderShot = lens (\(Sounds s) -> s.invaderShot)
                    (\(Sounds s) invaderShot' -> Sounds (s { invaderShot = invaderShot' }))
 
+-- TODO: Need to figure out how insure that all sounds are loaded
 loadAllSounds = do
   newPlayerBulletSound <- A.loadSound "sounds/newPlayerBullet.wav"
   invaderShotSound     <- A.loadSound "sounds/invaderShot.wav"
