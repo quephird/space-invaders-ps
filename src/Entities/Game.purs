@@ -1,7 +1,7 @@
 module Entities.Game where
 
 import Prelude ( bind, flip, otherwise, return, unit
-               , (#), ($), (*), (<) )
+               , (#), ($), (+), (*), (<) )
 
 import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM(), random )
@@ -171,7 +171,7 @@ generateInvaderBullets gRef = do
     return unit
   readSTRef gRef where
     maybeMakeNewInvaderBullet r i gRef | r < 0.005 = do
-      let newInvaderBullet = B.makeInvaderBullet (i^.I.x) (i^.I.y)
+      let newInvaderBullet = B.makeInvaderBullet (i^.I.x) (i^.I.y+25.0)
       modifySTRef gRef (\g -> g # invaderBullets %~ (cons newInvaderBullet)
                                 & events %~ (cons $ V.Event V.NewInvaderBullet V.New))
     maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
