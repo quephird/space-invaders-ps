@@ -27,6 +27,7 @@ import qualified Entities.Player as P
 import qualified Entities.Sounds as O
 import qualified Entities.Sprites as S
 import qualified Helpers.Audio as A
+import Helpers.Lens ( (&) )
 
 data Status = GameOver
             | Playing
@@ -105,6 +106,8 @@ deadInvaderSprite = sprites .. S.deadInvader
 
 newPlayerBulletSound :: Lens Game Game A.Sound A.Sound
 newPlayerBulletSound = sounds .. O.newPlayerBullet
+newInvaderBulletSound :: Lens Game Game A.Sound A.Sound
+newInvaderBulletSound = sounds .. O.newInvaderBullet
 invaderShotSound :: Lens Game Game A.Sound A.Sound
 invaderShotSound = sounds .. O.invaderShot
 
@@ -146,6 +149,7 @@ createPlayerBullet gRef = do
   let newPlayerBullet = B.makePlayerBullet (g ^. playerX) (g ^. playerY)
   modifySTRef gRef (\g -> g # playerBullets %~ (cons newPlayerBullet))
 
+-- TODO: OMFG THIS IS ABSOLUTE 💩 MAKE THIS BETTER
 generateInvaderBullets :: forall g eff. STRef g Game
                        -> Eff ( random :: RANDOM
                               , st :: ST g | eff ) Game
@@ -166,8 +170,9 @@ generateInvaderBullets gRef = do
     maybeMakeNewInvaderBullet r i gRef
     return unit
   readSTRef gRef where
-    maybeMakeNewInvaderBullet r i gRef | r < 0.002 = do
+    maybeMakeNewInvaderBullet r i gRef | r < 0.005 = do
       let newInvaderBullet = B.makeInvaderBullet (i^.I.x) (i^.I.y)
-      modifySTRef gRef (\g -> g # invaderBullets %~ (cons newInvaderBullet))
+      modifySTRef gRef (\g -> g # invaderBullets %~ (cons newInvaderBullet)
+                                & events %~ (cons $ V.Event V.NewInvaderBullet V.New))
     maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
       readSTRef gRef

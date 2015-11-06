@@ -4,7 +4,7 @@ import Prelude ( Unit()
                , (#), ($), (>), (/=)
                , bind, map, return, unit )
 
-import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
@@ -43,12 +43,15 @@ removeOffscreenPlayerBullets gRef = do
   modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets)
 
 update' G.Playing gRef = do
-  C.checkInvadersShot gRef
-  M.movePlayerBullets gRef
-  M.movePatrol gRef
-  updateInvaderStatus gRef
-  G.generateInvaderBullets gRef
-  removeOffscreenPlayerBullets gRef
+  foreachE [ C.checkInvadersShot
+           , M.movePlayerBullets
+           , M.movePatrol
+           , updateInvaderStatus
+           , G.generateInvaderBullets
+           , removeOffscreenPlayerBullets
+           ] (\f -> do
+                      f gRef
+                      return unit)
   return unit
 
 update' G.Waiting gRef = do

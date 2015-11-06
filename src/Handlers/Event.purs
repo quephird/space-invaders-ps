@@ -16,6 +16,8 @@ import qualified Handlers.Sound as S
 
 processEvent (V.Event V.InvaderShot _) gRef = do
   S.playInvaderShotSound gRef
+processEvent (V.Event V.NewInvaderBullet _) gRef = do
+  S.playNewInvaderBulletSound gRef
 processEvent _ _ = do
   return unit
 
