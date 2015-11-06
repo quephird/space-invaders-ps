@@ -45,6 +45,7 @@ removeOffscreenPlayerBullets gRef = do
 update' G.Playing gRef = do
   foreachE [ C.checkInvadersShot
            , M.movePlayerBullets
+           , M.moveInvaderBullets
            , M.movePatrol
            , updateInvaderStatus
            , G.generateInvaderBullets

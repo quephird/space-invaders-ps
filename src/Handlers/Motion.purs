@@ -32,6 +32,14 @@ movePlayerBullets gRef = do
       newPlayerBullets = map (\b -> b # B.y -~ 20.0) playerBullets
   modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets)
 
+moveInvaderBullets :: forall g eff. STRef g G.Game
+                   -> Eff ( st :: ST g | eff ) G.Game
+moveInvaderBullets gRef = do
+  g <- readSTRef gRef
+  let invaderBullets = g ^. G.invaderBullets
+      newInvaderBullets = map (\b -> b # B.y +~ 20.0) invaderBullets
+  modifySTRef gRef (\g -> g # G.invaderBullets .~ newInvaderBullets)
+
 isPastMargins :: Number -> Number -> Number -> Boolean
 isPastMargins minX maxX w = (50.0>minX) || (w-50.0)<maxX
 
