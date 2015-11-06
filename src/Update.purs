@@ -5,6 +5,7 @@ import Prelude ( Unit()
                , bind, map, return, unit )
 
 import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Data.Array ( filter )
@@ -33,7 +34,8 @@ updateInvaderStatus gRef = do
 -- TODO: Think about moving this into a different Module
 --         and moving update back into Main.
 removeOffscreenPlayerBullets :: forall eff g. STRef g G.Game
-                             -> Eff ( st :: ST g | eff ) G.Game
+                             -> Eff ( random :: RANDOM
+                                    , st :: ST g | eff ) G.Game
 removeOffscreenPlayerBullets gRef = do
   g <- readSTRef gRef
   let playerBullets = g ^. G.playerBullets
@@ -45,6 +47,7 @@ update' G.Playing gRef = do
   M.movePlayerBullets gRef
   M.movePatrol gRef
   updateInvaderStatus gRef
+  G.generateInvaderBullets gRef
   removeOffscreenPlayerBullets gRef
   return unit
 
@@ -55,7 +58,8 @@ update' G.GameOver gRef = do
   return unit
 
 update :: forall eff g. STRef g G.Game
-       -> Eff ( st :: ST g
+       -> Eff ( random :: RANDOM
+              , st :: ST g
               -- , console :: CONSOLE
               | eff ) Unit
 update gRef = do

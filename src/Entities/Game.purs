@@ -1,14 +1,17 @@
 module Entities.Game where
 
-import Prelude ( bind, flip, return, unit
-               , (#), ($), (*) )
+import Prelude ( bind, flip, otherwise, return, unit
+               , (#), ($), (*), (<) )
 
-import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff ( Eff(), foreachE )
+import Control.Monad.Eff.Random ( RANDOM(), random )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
+import Control.MonadPlus ( guard )
 import Data.Array ( cons )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
+import Data.Foldable ( foldl )
 import Data.Time ( Milliseconds() )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
@@ -39,6 +42,7 @@ data Game = Game
   , lives     :: Int
   , player    :: P.Player
   , playerBullets :: Array B.Bullet
+  , invaderBullets :: Array B.Bullet
   , enemies   :: E.Enemies
   , events    :: Array V.Event
   , sprites   :: S.Sprites
@@ -61,6 +65,8 @@ player = lens (\(Game g) -> g.player)
               (\(Game g) player' -> Game (g { player = player' }))
 playerBullets = lens (\(Game g) -> g.playerBullets)
                      (\(Game g) playerBullets' -> Game (g { playerBullets = playerBullets' }))
+invaderBullets = lens (\(Game g) -> g.invaderBullets)
+                      (\(Game g) invaderBullets' -> Game (g { invaderBullets = invaderBullets' }))
 enemies = lens (\(Game g) -> g.enemies)
                (\(Game g) enemies' -> Game (g { enemies = enemies' }))
 events = lens (\(Game g) -> g.events)
@@ -90,6 +96,8 @@ playerBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 playerBulletSprite = sprites .. S.playerBullet
 invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
 invaderSprites = sprites .. S.invader
+invaderBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+invaderBulletSprite = sprites .. S.invaderBullet
 shotInvaderSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 shotInvaderSprite = sprites .. S.shotInvader
 deadInvaderSprite :: Lens Game Game CanvasImageSource CanvasImageSource
@@ -118,6 +126,7 @@ makeGame w h = do
     , lives:     3
     , player:    player
     , playerBullets: []
+    , invaderBullets: []
     , enemies:   E.makeRegularLevel
     , events:    []
     , sprites:   sprites
@@ -136,3 +145,29 @@ createPlayerBullet gRef = do
   g <- readSTRef gRef
   let newPlayerBullet = B.makePlayerBullet (g ^. playerX) (g ^. playerY)
   modifySTRef gRef (\g -> g # playerBullets %~ (cons newPlayerBullet))
+
+generateInvaderBullets :: forall g eff. STRef g Game
+                       -> Eff ( random :: RANDOM
+                              , st :: ST g | eff ) Game
+generateInvaderBullets gRef = do
+  g <- readSTRef gRef
+  let currInvaders = g ^. invaders
+
+  -- For each of the invaders
+  --   generate a random number
+  --   if it's less than $MAGIC_NUMBER
+  --     make another bullet at the position of the invaderShotSound
+  --     add it to the current list of invader bullets
+  --   else
+  --     do nothing
+
+  foreachE currInvaders $ \i -> do
+    r <- random
+    maybeMakeNewInvaderBullet r i gRef
+    return unit
+  readSTRef gRef where
+    maybeMakeNewInvaderBullet r i gRef | r < 0.002 = do
+      let newInvaderBullet = B.makeInvaderBullet (i^.I.x) (i^.I.y)
+      modifySTRef gRef (\g -> g # invaderBullets %~ (cons newInvaderBullet))
+    maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
+      readSTRef gRef

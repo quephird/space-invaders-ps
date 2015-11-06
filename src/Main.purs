@@ -5,6 +5,7 @@ import Prelude ( Unit()
                , bind, mod, return, unit )
 
 import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , newSTRef, readSTRef )
 import Data.Date ( Now() )
@@ -47,6 +48,7 @@ main :: forall eff g. Eff ( canvas :: Canvas
                           -- , console :: CONSOLE
                           , dom :: DOM
                           , now :: Now
+                          , random :: RANDOM
                           , st :: ST g
                           , timer :: Timer | eff ) Timeout
 main = do
