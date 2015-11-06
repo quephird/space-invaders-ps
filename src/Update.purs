@@ -1,7 +1,7 @@
 module Update where
 
 import Prelude ( Unit()
-               , (#), ($), (>), (/=)
+               , (#), ($), (<), (>), (/=), (+)
                , bind, map, return, unit )
 
 import Control.Monad.Eff ( Eff(), foreachE )
@@ -16,6 +16,7 @@ import qualified Entities.Game as G
 import qualified Entities.Invader as I
 import qualified Handlers.Collision as C
 import qualified Handlers.Motion as M
+import Helpers.Lens ( (&) )
 
 -- import Control.Monad.Eff.Console ( CONSOLE() )
 -- import Control.Monad.Eff.Console.Unsafe ( logAny )
@@ -33,15 +34,19 @@ updateInvaderStatus gRef = do
 
 -- TODO: Think about moving this into a different Module
 --         and moving update back into Main.
-removeOffscreenPlayerBullets :: forall eff g. STRef g G.Game
+removeOffscreenBullets :: forall eff g. STRef g G.Game
                              -> Eff ( random :: RANDOM
                                     , st :: ST g | eff ) G.Game
-removeOffscreenPlayerBullets gRef = do
+removeOffscreenBullets gRef = do
   g <- readSTRef gRef
   let playerBullets = g ^. G.playerBullets
       newPlayerBullets = filter (\b -> b ^. B.y > -10.0) playerBullets
-  modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets)
+      invaderBullets = g ^. G.invaderBullets
+      newInvaderBullets = filter (\b -> b ^. B.y < g^.G.h+10.0) invaderBullets
+  modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets
+                            & G.invaderBullets .~ newInvaderBullets)
 
+-- TODO: Need to implement checkPlayerShot
 update' G.Playing gRef = do
   foreachE [ C.checkInvadersShot
            , M.movePlayerBullets
@@ -49,7 +54,7 @@ update' G.Playing gRef = do
            , M.movePatrol
            , updateInvaderStatus
            , G.generateInvaderBullets
-           , removeOffscreenPlayerBullets
+           , removeOffscreenBullets
            ] (\f -> do
                       f gRef
                       return unit)
