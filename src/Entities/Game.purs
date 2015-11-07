@@ -110,6 +110,8 @@ newInvaderBulletSound :: Lens Game Game A.Sound A.Sound
 newInvaderBulletSound = sounds .. O.newInvaderBullet
 invaderShotSound :: Lens Game Game A.Sound A.Sound
 invaderShotSound = sounds .. O.invaderShot
+playerShotSound :: Lens Game Game A.Sound A.Sound
+playerShotSound = sounds .. O.playerShot
 
 makeGame :: forall eff. Number
          -> Number

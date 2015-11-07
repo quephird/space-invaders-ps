@@ -14,6 +14,7 @@ instance eqStatus :: Eq Status where
 
 data EventType = NewInvaderBullet
                | InvaderShot
+               | PlayerShot
 
 data Event = Event EventType Status
 

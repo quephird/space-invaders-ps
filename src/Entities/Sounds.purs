@@ -13,6 +13,7 @@ data Sounds = Sounds
   { newPlayerBullet  :: A.Sound
   , newInvaderBullet :: A.Sound
   , invaderShot      :: A.Sound
+  , playerShot       :: A.Sound
   }
 
 newPlayerBullet = lens (\(Sounds s) -> s.newPlayerBullet)
@@ -21,15 +22,19 @@ newInvaderBullet = lens (\(Sounds s) -> s.newInvaderBullet)
                         (\(Sounds s) newInvaderBullet' -> Sounds (s { newInvaderBullet = newInvaderBullet' }))
 invaderShot = lens (\(Sounds s) -> s.invaderShot)
                    (\(Sounds s) invaderShot' -> Sounds (s { invaderShot = invaderShot' }))
+playerShot = lens (\(Sounds s) -> s.playerShot)
+                  (\(Sounds s) playerShot' -> Sounds (s { playerShot = playerShot' }))
 
 -- TODO: Need to figure out how insure that all sounds are loaded
 loadAllSounds = do
   newPlayerBulletSound  <- A.loadSound "sounds/newPlayerBullet.wav"
   newInvaderBulletSound <- A.loadSound "sounds/newInvaderBullet.wav"
   invaderShotSound      <- A.loadSound "sounds/invaderShot.wav"
+  playerShotSound       <- A.loadSound "sounds/playerShot.wav"
 
   return $ Sounds
     { newPlayerBullet:  newPlayerBulletSound
     , newInvaderBullet: newInvaderBulletSound
     , invaderShot:      invaderShotSound
+    , playerShot:       playerShotSound
     }

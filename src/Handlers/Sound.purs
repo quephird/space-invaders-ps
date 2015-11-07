@@ -27,3 +27,9 @@ playInvaderShotSound :: forall g eff. STRef g G.Game
 playInvaderShotSound gRef = do
   g <- readSTRef gRef
   A.playSound $ g ^. G.invaderShotSound
+
+playPlayerShotSound :: forall g eff. STRef g G.Game
+                    -> Eff ( st :: ST g | eff ) Unit
+playPlayerShotSound gRef = do
+  g <- readSTRef gRef
+  A.playSound $ g ^. G.playerShotSound

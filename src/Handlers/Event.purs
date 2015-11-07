@@ -14,6 +14,8 @@ import qualified Entities.Event as V
 import qualified Entities.Game as G
 import qualified Handlers.Sound as S
 
+processEvent (V.Event V.PlayerShot _) gRef = do
+  S.playPlayerShotSound gRef
 processEvent (V.Event V.InvaderShot _) gRef = do
   S.playInvaderShotSound gRef
 processEvent (V.Event V.NewInvaderBullet _) gRef = do
@@ -27,6 +29,7 @@ clearHandledEvents gRef = do
       unhandledEvents = filter (\e -> e ^. V.status == V.New) currEvents
   modifySTRef gRef (\g -> g # G.events .~ unhandledEvents)
 
+-- TODO: Need to update the statuses of events once they're processed!!! DUH!!!
 processEvents :: forall eff g. STRef g G.Game
               -> Eff ( st :: ST g | eff ) Unit
 processEvents gRef = do

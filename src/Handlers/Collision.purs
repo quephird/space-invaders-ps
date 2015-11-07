@@ -9,12 +9,13 @@ import Control.Monad.ST ( ST(), STRef()
 import Data.Array ( (\\), concat, cons, filter, length, nub )
 import Data.Tuple ( Tuple(..) )
 import Math ( abs )
-import Optic.Core ( (^.), (.~), (+~) )
+import Optic.Core ( (^.), (.~), (+~), (-~) )
 
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Event as V
 import qualified Entities.Invader as I
+import qualified Entities.Player as P
 import Helpers.Lens ( (&) )
 
 -- import Control.Monad.Eff.Console ( CONSOLE() )
@@ -29,9 +30,42 @@ instance shootableInvader :: Shootable I.Invader where
     abs(i^.I.x - b^.B.x) < 25.0 &&
     abs(i^.I.y - b^.B.y) < 25.0
 
+instance shootablePlayer :: Shootable P.Player where
+  isShot p b =
+    abs(p^.P.x - b^.B.x) < 25.0 &&
+    abs(p^.P.y - b^.B.y) < 25.0
+
 computeNewEvents :: Array V.Event -> Int -> Array V.Event
 computeNewEvents currEvents invaderCount | invaderCount > 0 = cons (V.Event V.InvaderShot V.New) currEvents
                                          | otherwise = currEvents
+
+checkPlayerShot :: forall eff g. STRef g G.Game
+                -> Eff ( st :: ST g | eff ) G.Game
+checkPlayerShot gRef = do
+  g <- readSTRef gRef
+  let currBullets  = g ^. G.invaderBullets
+      player       = g ^. G.player
+      isDead       = (>0) $ length $ filter (isShot player) currBullets
+
+      go true = modifySTRef gRef (\g -> g # G.lives -~ 1
+                                          & G.playerBullets .~ []
+                                          & G.invaderBullets .~ []
+                                          & G.events .~ [V.Event V.PlayerShot V.New])
+      go _    = modifySTRef gRef (\g -> g)
+
+  go isDead
+  -- if there is at least one collision
+  --   decrement lives
+  --   add sound event
+  --   zero out invader bullets
+  --   zero out player bullets
+  -- else
+  --   carry on
+
+
+
+
+-- checkPlayerDead
 
 checkInvadersShot :: forall eff g. STRef g G.Game
                   -> Eff ( st :: ST g | eff ) G.Game

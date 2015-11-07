@@ -48,7 +48,8 @@ removeOffscreenBullets gRef = do
 
 -- TODO: Need to implement checkPlayerShot
 update' G.Playing gRef = do
-  foreachE [ C.checkInvadersShot
+  foreachE [ C.checkPlayerShot
+           , C.checkInvadersShot
            , M.movePlayerBullets
            , M.moveInvaderBullets
            , M.movePatrol
