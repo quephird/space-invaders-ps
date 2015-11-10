@@ -46,7 +46,6 @@ removeOffscreenBullets gRef = do
   modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets
                             & G.invaderBullets .~ newInvaderBullets)
 
--- TODO: Need to implement checkPlayerShot
 update' G.Playing gRef = do
   foreachE [ C.checkPlayerShot
            , C.checkInvadersShot

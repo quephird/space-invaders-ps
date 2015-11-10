@@ -35,10 +35,6 @@ instance shootablePlayer :: Shootable P.Player where
     abs(p^.P.x - b^.B.x) < 25.0 &&
     abs(p^.P.y - b^.B.y) < 25.0
 
-computeNewEvents :: Array V.Event -> Int -> Array V.Event
-computeNewEvents currEvents invaderCount | invaderCount > 0 = cons (V.Event V.InvaderShot V.New) currEvents
-                                         | otherwise = currEvents
-
 checkPlayerShot :: forall eff g. STRef g G.Game
                 -> Eff ( st :: ST g | eff ) G.Game
 checkPlayerShot gRef = do
@@ -54,16 +50,6 @@ checkPlayerShot gRef = do
       go _    = modifySTRef gRef (\g -> g)
 
   go isDead
-  -- if there is at least one collision
-  --   decrement lives
-  --   add sound event
-  --   zero out invader bullets
-  --   zero out player bullets
-  -- else
-  --   carry on
-
-
-
 
 -- checkPlayerDead
 
@@ -75,9 +61,9 @@ checkInvadersShot gRef = do
       currInvaders = g ^. G.invaders
       currEvents   = g ^. G.events
       collisions   = filter (\(Tuple i b) -> isShot i b) $ do
-        i <- currInvaders
-        b <- currBullets
-        return $ Tuple i b
+                       i <- currInvaders
+                       b <- currBullets
+                       return $ Tuple i b
 
       -- TODO: Think about how scoring should be best handled.
       shotInvaders  = nub $ map (\(Tuple i _) -> i # I.status .~ I.Shot) collisions
@@ -86,7 +72,8 @@ checkInvadersShot gRef = do
       newInvaders   = concat $ [otherInvaders, shotInvaders]
       newBullets    = currBullets \\ deadBullets
       newPoints     = 100 * length shotInvaders
-      newEvents     = computeNewEvents currEvents $ length shotInvaders
+      newEvents | length shotInvaders > 0 = cons (V.Event V.InvaderShot V.New) currEvents
+                | otherwise               = currEvents
 
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
                             & G.playerBullets .~ newBullets
