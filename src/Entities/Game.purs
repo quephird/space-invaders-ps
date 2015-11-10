@@ -144,6 +144,23 @@ startGame gRef = do
   g <- readSTRef gRef
   modifySTRef gRef (\g -> g # status .~ Playing)
 
+restartGame :: forall g eff. STRef g Game
+            -> Eff ( now :: Now
+                   , st :: ST g | eff ) Game
+restartGame gRef = do
+  g <- readSTRef gRef
+  newStartTime <- nowEpochMilliseconds
+  let newPlayer = P.makePlayer (0.5*g^.w) (0.9*g^.h)
+  modifySTRef gRef (\g -> g # status .~ Playing
+                            & player .~ newPlayer
+                            & startTime .~ newStartTime
+                            & score .~ 0
+                            & lives .~ 3
+                            & enemies .~ E.makeRegularLevel
+                            & playerBullets .~ []
+                            & invaderBullets .~ []
+                            & events .~ [])
+
 createPlayerBullet :: forall g eff. STRef g Game
                    -> Eff ( st :: ST g | eff ) Game
 createPlayerBullet gRef = do

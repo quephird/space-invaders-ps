@@ -6,6 +6,7 @@ import Prelude ( ($), (#)
 import Control.Monad.Eff ( Eff(), Pure() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
+import Data.Date ( Now() )
 import DOM.Event.EventTarget ( EventListener()
                              , eventListener )
 import DOM.Event.Types ( Event() )
@@ -30,17 +31,19 @@ movePlayer key gRef = do
 respondToKey :: forall g eff. Key
              -> G.Status
              -> STRef g G.Game
-             -> Eff ( st :: ST g | eff ) G.Game
+             -> Eff ( now :: Now
+                    , st :: ST g | eff ) G.Game
 respondToKey Left G.Playing gRef = movePlayer Left gRef
-
 respondToKey Right G.Playing gRef = movePlayer Right gRef
-
 respondToKey SpaceBar G.Playing gRef = do
   S.playNewPlayerBulletSound gRef
   G.createPlayerBullet gRef
 
 respondToKey S G.Waiting gRef = do
   G.startGame gRef
+
+respondToKey S G.GameOver gRef = do
+  G.restartGame gRef
 
 respondToKey _ _ _ = readSTRef gRef
 
@@ -51,7 +54,8 @@ eventToKeyboardEvent :: Event -> KeyboardEventMini
 eventToKeyboardEvent = unsafeCoerce
 
 onKeydown :: forall g eff. STRef g G.Game
-          -> EventListener ( st :: ST g | eff )
+          -> EventListener ( now :: Now
+                           , st :: ST g | eff )
 onKeydown gRef = eventListener $ \evt -> do
   g <- readSTRef gRef
   let gameStatus = g ^. G.status
