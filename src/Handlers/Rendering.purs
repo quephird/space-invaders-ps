@@ -180,6 +180,28 @@ render' G.Waiting gRef = do
     return unit
   return unit
 
+render' G.GameOver gRef = do
+  Just canvas <- getCanvasElementById "canvas"
+  ctx <- getContext2D canvas
+  g <- readSTRef gRef
+
+  setFillStyle "#000000" ctx
+  fillRect ctx { x: 0.0
+               , y: 0.0
+               , w: g ^. G.w
+               , h: g ^. G.h}
+
+  setFont "40pt Courier" ctx
+  let allText = [ { color: "#FFFFFF", text: "{ status:", x: 50.0, y: 350.0 }
+                , { color: "#CC0000", text: "GameOver", x: 375.0, y: 350.0 }
+                , { color: "#FFFFFF", text: "}", x: 650.0, y: 350.0 }
+                ]
+  foreachE allText $ \t -> do
+    setFillStyle t.color ctx
+    fillText ctx t.text t.x t.y
+    return unit
+  return unit
+
 render :: forall eff g. STRef g G.Game
        -> Eff ( canvas :: Canvas
               , now :: Now

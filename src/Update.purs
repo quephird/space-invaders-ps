@@ -1,8 +1,8 @@
 module Update where
 
 import Prelude ( Unit()
-               , (#), ($), (<), (>), (/=), (+)
-               , bind, map, return, unit )
+               , (#), ($), (<), (>), (==), (/=), (+)
+               , bind, map, otherwise, return, unit )
 
 import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM() )
@@ -46,8 +46,18 @@ removeOffscreenBullets gRef = do
   modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets
                             & G.invaderBullets .~ newInvaderBullets)
 
+checkPlayerDead :: forall eff g. STRef g G.Game
+                  -> Eff ( st :: ST g | eff ) G.Game
+checkPlayerDead gRef = do
+  g <- readSTRef gRef
+  let lives = g ^. G.lives
+      go lives | lives == 0 = modifySTRef gRef (\g -> g # G.status .~ G.GameOver)
+               | otherwise  = modifySTRef gRef (\g -> g)
+  go lives
+
 update' G.Playing gRef = do
-  foreachE [ C.checkPlayerShot
+  foreachE [ checkPlayerDead
+           , C.checkPlayerShot
            , C.checkInvadersShot
            , M.movePlayerBullets
            , M.moveInvaderBullets

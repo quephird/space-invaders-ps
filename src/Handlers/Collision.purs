@@ -51,8 +51,6 @@ checkPlayerShot gRef = do
 
   go isDead
 
--- checkPlayerDead
-
 checkInvadersShot :: forall eff g. STRef g G.Game
                   -> Eff ( st :: ST g | eff ) G.Game
 checkInvadersShot gRef = do
