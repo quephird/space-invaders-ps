@@ -9,6 +9,7 @@ import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Data.Array ( filter, length )
+import Data.Date ( Now() )
 import Optic.Core ( (^.), (.~), (+~) )
 
 import qualified Entities.Bullet as B
@@ -81,6 +82,7 @@ update' G.Playing gRef = do
            , updateInvaderStatus
            , G.generateStars
            , G.generateInvaderBullets
+           , G.possiblyGenerateMysteryShip
            , removeOffscreenObjects
            ] (\f -> do
                       f gRef
@@ -94,7 +96,8 @@ update' G.GameOver gRef = do
   return unit
 
 update :: forall eff g. STRef g G.Game
-       -> Eff ( random :: RANDOM
+       -> Eff ( now :: Now
+              , random :: RANDOM
               , st :: ST g
               -- , console :: CONSOLE
               | eff ) Unit

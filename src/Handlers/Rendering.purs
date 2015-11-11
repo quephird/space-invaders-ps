@@ -27,6 +27,7 @@ import Optic.Core ( (^.) )
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
+import qualified Entities.MysteryShip as M
 import qualified Entities.Star as T
 import Helpers.Image ( drawImageCentered, getWidth )
 
@@ -71,6 +72,22 @@ renderLives ctx g = do
     return unit
   return unit
 
+possiblyRenderMysteryShip :: forall eff g. Context2D
+                          -> G.Game
+                          -> Eff ( canvas :: Canvas
+                                 , st :: ST g | eff ) Unit
+possiblyRenderMysteryShip ctx g = do
+  let go Nothing   = return unit
+      go (Just m)  = do
+        let mysteryShipSprites = g ^. G.mysteryShipSprites
+            mysteryShipSprite  = fromJust $ mysteryShipSprites !! 0
+        drawImageCentered ctx
+                          mysteryShipSprite
+                          (m ^. M.x)
+                          (m ^. M.y)
+        return unit
+  go $ g ^. G.mysteryShip
+
 -- TODO: Need to have separate implementations for Patrol and Boss types.
 --       Need to alternate invader sprites faster as the number of them
 --         remaining gets smaller.
@@ -103,6 +120,7 @@ renderEnemies ctx g = do
                       (i ^. I.x)
                       (i ^. I.y)
     return unit
+  possiblyRenderMysteryShip ctx g
 
 renderPlayer :: forall eff g. Context2D
              -> G.Game
@@ -141,7 +159,6 @@ renderInvaderBullets ctx g = do
                       (b ^. B.y)
     return unit
   return unit
-
 
 render' :: forall eff g. G.Status
         -> STRef g G.Game

@@ -1,7 +1,7 @@
 module Entities.Game where
 
 import Prelude ( bind, flip, otherwise, return, unit
-               , (#), ($), (+), (*), (<) )
+               , (#), ($), (+), (-), (*), (<) )
 
 import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM(), random )
@@ -12,6 +12,7 @@ import Data.Array ( cons )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
 import Data.Foldable ( foldl )
+import Data.Maybe ( Maybe(..) )
 import Data.Time ( Milliseconds() )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
@@ -23,6 +24,7 @@ import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Event as V
 import qualified Entities.Invader as I
+import qualified Entities.MysteryShip as M
 import qualified Entities.Player as P
 import qualified Entities.Sounds as O
 import qualified Entities.Sprites as S
@@ -91,6 +93,8 @@ patrolDirection :: Lens Game Game E.Direction E.Direction
 patrolDirection = enemies .. E.direction
 patrolDx :: Lens Game Game Number Number
 patrolDx = enemies .. E.dx
+mysteryShip :: Lens Game Game (Maybe M.MysteryShip) (Maybe M.MysteryShip)
+mysteryShip = enemies .. E.mysteryShip
 
 lifeSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 lifeSprite = sprites .. S.lives
@@ -106,6 +110,8 @@ shotInvaderSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 shotInvaderSprite = sprites .. S.shotInvader
 deadInvaderSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 deadInvaderSprite = sprites .. S.deadInvader
+mysteryShipSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
+mysteryShipSprites = sprites .. S.mysteryShip
 
 newPlayerBulletSound :: Lens Game Game A.Sound A.Sound
 newPlayerBulletSound = sounds .. O.newPlayerBullet
@@ -209,3 +215,13 @@ generateInvaderBullets gRef = do
                                 & events %~ (cons $ V.Event V.NewInvaderBullet V.New))
     maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
       readSTRef gRef
+
+possiblyGenerateMysteryShip :: forall g eff. STRef g Game
+                            -> Eff ( now :: Now
+                                   , random :: RANDOM
+                                   , st :: ST g | eff ) Game
+possiblyGenerateMysteryShip gRef = do
+  g <- readSTRef gRef
+  currTime <- nowEpochMilliseconds
+  let secondsIntoGame = currTime - g^.startTime
+  modifySTRef gRef (\g -> g)
