@@ -167,6 +167,22 @@ restartGame gRef = do
                             & invaderBullets .~ []
                             & events .~ [])
 
+generateStars :: forall g eff. STRef g Game
+              -> Eff ( random :: RANDOM
+                     , st :: ST g | eff ) Game
+generateStars gRef = do
+  g <- readSTRef gRef
+  coinToss <- random
+  let currStars = g ^. stars
+      maybeMakeNewStar coinToss gRef | coinToss < 0.25 = do
+        x <- random
+        let newStar = T.makeStar (g^.w * x) (g^.h)
+        modifySTRef gRef (\g -> g # stars %~ (cons newStar))
+      maybeMakeNewStar _ gRef | otherwise = do
+        readSTRef gRef
+
+  maybeMakeNewStar coinToss gRef
+
 createPlayerBullet :: forall g eff. STRef g Game
                    -> Eff ( st :: ST g | eff ) Game
 createPlayerBullet gRef = do

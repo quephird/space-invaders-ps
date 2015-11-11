@@ -14,6 +14,7 @@ import Optic.Core ( (^.), (.~), (+~) )
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
+import qualified Entities.Star as T
 import qualified Handlers.Collision as C
 import qualified Handlers.Motion as M
 import Helpers.Lens ( (&) )
@@ -34,17 +35,20 @@ updateInvaderStatus gRef = do
 
 -- TODO: Think about moving this into a different Module
 --         and moving update back into Main.
-removeOffscreenBullets :: forall eff g. STRef g G.Game
-                             -> Eff ( random :: RANDOM
-                                    , st :: ST g | eff ) G.Game
-removeOffscreenBullets gRef = do
+removeOffscreenObjects :: forall eff g. STRef g G.Game
+                       -> Eff ( random :: RANDOM
+                              , st :: ST g | eff ) G.Game
+removeOffscreenObjects gRef = do
   g <- readSTRef gRef
-  let playerBullets = g ^. G.playerBullets
-      newPlayerBullets = filter (\b -> b ^. B.y > -10.0) playerBullets
-      invaderBullets = g ^. G.invaderBullets
+  let stars             = g ^. G.stars
+      newStars          = filter (\s -> s ^. T.y > -10.0) stars
+      playerBullets     = g ^. G.playerBullets
+      newPlayerBullets  = filter (\b -> b ^. B.y > -10.0) playerBullets
+      invaderBullets    = g ^. G.invaderBullets
       newInvaderBullets = filter (\b -> b ^. B.y < g^.G.h+10.0) invaderBullets
   modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets
-                            & G.invaderBullets .~ newInvaderBullets)
+                            & G.invaderBullets .~ newInvaderBullets
+                            & G.stars .~ newStars)
 
 checkPlayerDead :: forall eff g. STRef g G.Game
                   -> Eff ( st :: ST g | eff ) G.Game
@@ -59,12 +63,14 @@ update' G.Playing gRef = do
   foreachE [ checkPlayerDead
            , C.checkPlayerShot
            , C.checkInvadersShot
+           , M.moveStars
            , M.movePlayerBullets
            , M.moveInvaderBullets
            , M.movePatrol
            , updateInvaderStatus
+           , G.generateStars
            , G.generateInvaderBullets
-           , removeOffscreenBullets
+           , removeOffscreenObjects
            ] (\f -> do
                       f gRef
                       return unit)

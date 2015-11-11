@@ -31,7 +31,3 @@ generateStars w h =
       x <- random
       y <- random
       return $ makeStar (w*x) (h*y)
-      -- return x
-    -- randomY = do
-    --   r <- random
-    --   h*r

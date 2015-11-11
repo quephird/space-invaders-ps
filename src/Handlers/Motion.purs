@@ -19,10 +19,19 @@ import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
+import qualified Entities.Star as T
 import Helpers.Lens ( (&) )
 
 -- import Control.Monad.Eff.Console ( CONSOLE() )
 -- import Control.Monad.Eff.Console.Unsafe ( logAny )
+
+moveStars :: forall g eff. STRef g G.Game
+          -> Eff ( st :: ST g | eff ) G.Game
+moveStars gRef = do
+  g <- readSTRef gRef
+  let stars = g ^. G.stars
+      newStars = map (\s -> s # T.y -~ 5.0) stars
+  modifySTRef gRef (\g -> g # G.stars .~ newStars)
 
 movePlayerBullets :: forall g eff. STRef g G.Game
                   -> Eff ( st :: ST g | eff ) G.Game
