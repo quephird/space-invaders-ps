@@ -19,6 +19,7 @@ import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
+import qualified Entities.MysteryShip as M
 import qualified Entities.Star as T
 import Helpers.Lens ( (&) )
 
@@ -93,6 +94,11 @@ moveInvader :: I.Invader
 moveInvader invader newDx newDy = invader # I.x +~ newDx
                                           & I.y +~ newDy
 
+moveMysteryShip :: Maybe M.MysteryShip
+                -> Maybe M.MysteryShip
+moveMysteryShip Nothing = Nothing
+moveMysteryShip (Just m) = Just $ m # M.x +~ 5.0
+
 movePatrol :: forall g eff. STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game
 movePatrol gRef = do
@@ -101,11 +107,14 @@ movePatrol gRef = do
       currDir      = g ^. G.patrolDirection
       currDx       = g ^. G.patrolDx
       currInvaders = g ^. G.invaders
+      currMysteryShip = g ^. G.mysteryShip
 
       newDir       = computeDirection currDir w currInvaders
       newDx        = computeDx newDir currDir currDx $ length currInvaders
       newDy        = computeDy newDir currDir
       newInvaders  = map (\i -> moveInvader i newDx newDy) currInvaders
+      newMysteryShip = moveMysteryShip currMysteryShip
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
                             & G.patrolDirection .~ newDir
-                            & G.patrolDx .~ newDx)
+                            & G.patrolDx .~ newDx
+                            & G.mysteryShip .~ newMysteryShip)

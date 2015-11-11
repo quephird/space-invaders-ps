@@ -1,7 +1,7 @@
 module Entities.Game where
 
-import Prelude ( bind, flip, otherwise, return, unit
-               , (#), ($), (+), (-), (*), (<) )
+import Prelude ( bind, flip, mod, otherwise, return, unit
+               , (#), ($), (+), (-), (*), (<), (>=), (&&), (==) )
 
 import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM(), random )
@@ -13,7 +13,7 @@ import Data.Date ( Now()
                  , nowEpochMilliseconds )
 import Data.Foldable ( foldl )
 import Data.Maybe ( Maybe(..) )
-import Data.Time ( Milliseconds() )
+import Data.Time ( Milliseconds(..) )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
 import Optic.Core ( Lens()
@@ -31,6 +31,9 @@ import qualified Entities.Sprites as S
 import qualified Entities.Star as T
 import qualified Helpers.Audio as A
 import Helpers.Lens ( (&) )
+
+-- import Control.Monad.Eff.Console ( CONSOLE() )
+-- import Control.Monad.Eff.Console.Unsafe ( logAny )
 
 data Status = GameOver
             | Playing
@@ -151,10 +154,13 @@ makeGame w h = do
     }
 
 startGame :: forall g eff. STRef g Game
-          -> Eff ( st :: ST g | eff ) Game
+          -> Eff ( now :: Now
+                 , st :: ST g | eff ) Game
 startGame gRef = do
   g <- readSTRef gRef
-  modifySTRef gRef (\g -> g # status .~ Playing)
+  newStartTime <- nowEpochMilliseconds
+  modifySTRef gRef (\g -> g # status .~ Playing
+                            & startTime .~ newStartTime)
 
 restartGame :: forall g eff. STRef g Game
             -> Eff ( now :: Now
@@ -216,6 +222,12 @@ generateInvaderBullets gRef = do
     maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
       readSTRef gRef
 
+isBeginningOfCycle :: Milliseconds
+                   -> Milliseconds
+                   -> Prim.Boolean
+isBeginningOfCycle (Milliseconds t) (Milliseconds c) =
+  t >= c && t `mod` c == 0.0
+
 possiblyGenerateMysteryShip :: forall g eff. STRef g Game
                             -> Eff ( now :: Now
                                    , random :: RANDOM
@@ -223,5 +235,12 @@ possiblyGenerateMysteryShip :: forall g eff. STRef g Game
 possiblyGenerateMysteryShip gRef = do
   g <- readSTRef gRef
   currTime <- nowEpochMilliseconds
-  let secondsIntoGame = currTime - g^.startTime
-  modifySTRef gRef (\g -> g)
+  let millisecondsIntoGame = currTime - g^.startTime
+      currMysteryShip = g ^. mysteryShip
+      beginningOfCycle = isBeginningOfCycle millisecondsIntoGame (Milliseconds 5000.0)
+      go Nothing true =
+        modifySTRef gRef (\g -> g # mysteryShip .~ (Just $ M.makeMysteryShip (-100.0) 75.0))
+      go _ _ =
+        modifySTRef gRef (\g -> g)
+
+  go currMysteryShip beginningOfCycle
