@@ -75,12 +75,16 @@ renderLives ctx g = do
 possiblyRenderMysteryShip :: forall eff g. Context2D
                           -> G.Game
                           -> Eff ( canvas :: Canvas
+                                 , now :: Now
                                  , st :: ST g | eff ) Unit
 possiblyRenderMysteryShip ctx g = do
-  let go Nothing   = return unit
+  currentTime <- nowEpochMilliseconds
+  let chooseSprite (Seconds s) = (fromJust $ fromNumber $ floor $ s * 4.0) `mod` 4
+      go Nothing   = return unit
       go (Just m)  = do
         let mysteryShipSprites = g ^. G.mysteryShipSprites
-            mysteryShipSprite  = fromJust $ mysteryShipSprites !! 0
+            secondsIntoGame   = toSeconds $ currentTime - (g ^. G.startTime)
+            mysteryShipSprite  = fromJust $ mysteryShipSprites !! (chooseSprite secondsIntoGame)
         drawImageCentered ctx
                           mysteryShipSprite
                           (m ^. M.x)
@@ -145,7 +149,6 @@ renderPlayerBullets ctx g = do
                       (b ^. B.y)
     return unit
   return unit
-
 
 renderInvaderBullets :: forall eff g. Context2D
                      -> G.Game
