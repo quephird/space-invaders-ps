@@ -8,10 +8,11 @@ import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( filter )
+import Data.Array ( filter, length )
 import Optic.Core ( (^.), (.~), (+~) )
 
 import qualified Entities.Bullet as B
+import qualified Entities.Enemies as E
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
 import qualified Entities.Star as T
@@ -59,10 +60,20 @@ checkPlayerDead gRef = do
                | otherwise  = modifySTRef gRef (\g -> g)
   go lives
 
+checkInvadersCleared :: forall eff g. STRef g G.Game
+                     -> Eff ( st :: ST g | eff ) G.Game
+checkInvadersCleared gRef = do
+  g <- readSTRef gRef
+  let invaders = g ^. G.invaders
+      go 0 = modifySTRef gRef (\g -> g # G.enemies .~ E.makeRegularLevel)
+      go _ = modifySTRef gRef (\g -> g)
+  go $ length invaders
+
 update' G.Playing gRef = do
   foreachE [ checkPlayerDead
            , C.checkPlayerShot
            , C.checkInvadersShot
+           , checkInvadersCleared
            , M.moveStars
            , M.movePlayerBullets
            , M.moveInvaderBullets
