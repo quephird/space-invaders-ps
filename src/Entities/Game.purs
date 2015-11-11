@@ -26,6 +26,7 @@ import qualified Entities.Invader as I
 import qualified Entities.Player as P
 import qualified Entities.Sounds as O
 import qualified Entities.Sprites as S
+import qualified Entities.Star as T
 import qualified Helpers.Audio as A
 import Helpers.Lens ( (&) )
 
@@ -46,6 +47,7 @@ data Game = Game
   , invaderBullets :: Array B.Bullet
   , enemies   :: E.Enemies
   , events    :: Array V.Event
+  , stars     :: Array T.Star
   , sprites   :: S.Sprites
   , sounds    :: O.Sounds
   }
@@ -72,7 +74,8 @@ enemies = lens (\(Game g) -> g.enemies)
                (\(Game g) enemies' -> Game (g { enemies = enemies' }))
 events = lens (\(Game g) -> g.events)
               (\(Game g) events' -> Game (g { events = events' }))
-
+stars = lens (\(Game g) -> g.stars)
+             (\(Game g) stars' -> Game (g { stars = stars' }))
 sprites = lens (\(Game g) -> g.sprites)
                (\(Game g) sprites' -> Game (g { sprites = sprites' }))
 sounds = lens (\(Game g) -> g.sounds)
@@ -116,12 +119,14 @@ playerShotSound = sounds .. O.playerShot
 makeGame :: forall eff. Number
          -> Number
          -> Eff ( canvas :: Canvas
-                , now :: Now | eff) Game
+                , now :: Now
+                , random :: RANDOM | eff ) Game
 makeGame w h = do
   let player = P.makePlayer (0.5*w) (0.9*h)
   sprites <- S.loadSprites
   sounds <- O.loadAllSounds
   startTime <- nowEpochMilliseconds
+  stars <- T.generateStars w h
   return $ Game
     { w:         w
     , h:         h
@@ -134,6 +139,7 @@ makeGame w h = do
     , invaderBullets: []
     , enemies:   E.makeRegularLevel
     , events:    []
+    , stars:     stars
     , sprites:   sprites
     , sounds:    sounds
     }
@@ -175,14 +181,6 @@ generateInvaderBullets :: forall g eff. STRef g Game
 generateInvaderBullets gRef = do
   g <- readSTRef gRef
   let currInvaders = g ^. invaders
-
-  -- For each of the invaders
-  --   generate a random number
-  --   if it's less than $MAGIC_NUMBER
-  --     make another bullet at the position of the invaderShotSound
-  --     add it to the current list of invader bullets
-  --   else
-  --     do nothing
 
   foreachE currInvaders $ \i -> do
     r <- random

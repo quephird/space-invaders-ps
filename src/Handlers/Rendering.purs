@@ -27,7 +27,22 @@ import Optic.Core ( (^.) )
 import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
+import qualified Entities.Star as T
 import Helpers.Image ( drawImageCentered, getWidth )
+
+renderStars :: forall eff g. Context2D
+            -> G.Game
+            -> Eff ( canvas :: Canvas
+                   , st :: ST g | eff ) Unit
+renderStars ctx g = do
+  setFillStyle "#FFFFFF" ctx
+  foreachE (g ^. G.stars) $ \s -> do
+    fillRect ctx
+      { x: s^.T.x
+      , y: s^.T.y
+      , w: 4.0
+      , h: 4.0 }
+    return unit
 
 renderScore :: forall eff g. Context2D
             -> G.Game
@@ -144,7 +159,8 @@ render' G.Playing gRef = do
                , w: g ^. G.w
                , h: g ^. G.h}
 
-  foreachE [ renderScore
+  foreachE [ renderStars
+           , renderScore
            , renderLives
            , renderEnemies
            , renderPlayer
