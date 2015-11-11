@@ -6,10 +6,12 @@ import Prelude ( Eq
 
 import Data.Array ( (..) )
 import Data.Int ( toNumber )
+import Data.Maybe ( Maybe(..) )
 import Optic.Core ( lens )
 
 import qualified Entities.Boss as B
 import qualified Entities.Invader as I
+import qualified Entities.MysteryShip as M
 
 data Direction = Left | Right
 
@@ -18,20 +20,29 @@ instance eqDirection :: Eq Direction where
   eq Right Right = true
   eq _ _         = false
 
--- TODO: Need to switch from product to record type.
-data Enemies = Patrol (Array I.Invader) Direction Number
+data Enemies = Patrol { invaders :: Array I.Invader
+                      , direction :: Direction
+                      , dx :: Number
+                      , mysteryShip :: Maybe M.MysteryShip
+                      }
              | BossLevel B.Boss
 
-invaders = lens (\(Patrol invaders _ _) -> invaders)
-                (\(Patrol invaders dir dx) invaders' -> Patrol invaders' dir dx)
-direction = lens (\(Patrol _ dir _) -> dir)
-                 (\(Patrol invaders dir dx) dir' -> Patrol invaders dir' dx)
-dx = lens (\(Patrol _ _ dx) -> dx)
-          (\(Patrol invaders dir dx) dx' -> Patrol invaders dir dx')
+invaders = lens (\(Patrol p) -> p.invaders)
+                (\(Patrol p) invaders' -> Patrol ( p { invaders = invaders' }))
+direction = lens (\(Patrol p) -> p.direction)
+                 (\(Patrol p) direction' -> Patrol ( p { direction = direction' }))
+dx = lens (\(Patrol p) -> p.dx)
+          (\(Patrol p) dx' -> Patrol ( p { dx = dx' }))
+mysteryShip = lens (\(Patrol p) -> p.mysteryShip)
+                   (\(Patrol p) mysteryShip' -> Patrol ( p { mysteryShip = mysteryShip' }))
 
 makeRegularLevel :: Enemies
 makeRegularLevel =
-  Patrol makeInvaders Right 2.0 where
+  Patrol { invaders: makeInvaders
+         , direction: Right
+         , dx: 2.0
+         , mysteryShip: Nothing
+         } where
     makeInvaders = do
       x <- 0 .. 7
       y <- 0 .. 2
