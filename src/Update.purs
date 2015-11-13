@@ -8,15 +8,18 @@ import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( filter, length )
+import Data.Array ( cons, filter, length )
 import Data.Date ( Now() )
-import Optic.Core ( (^.), (.~), (+~) )
+import Data.Maybe ( Maybe(..) )
+import Optic.Core ( (^.), (.~), (+~), (%~) )
 
 import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
+import qualified Entities.Event as V
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
 import qualified Entities.Star as T
+import qualified Entities.MysteryShip as Y
 import qualified Handlers.Collision as C
 import qualified Handlers.Motion as M
 import Helpers.Lens ( (&) )
@@ -34,6 +37,20 @@ updateInvaderStatus gRef = do
           _       -> status
       newInvaders = map (\i -> i # I.status .~ (newStatus $ i^.I.status)) remainingInvaders
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders)
+
+possiblyRemoveOffscreenMysteryShip gRef = do
+  g <- readSTRef gRef
+  let currMysteryShip   = g ^. G.mysteryShip
+      -- Remove ship and stop sound
+      go (Just m) | m^.Y.x > g^.G.w+100.0 = do
+        modifySTRef gRef (\g -> g # G.mysteryShip .~ Nothing
+                                  & G.events %~ (cons $ V.Event V.GoneMysteryShip V.New))
+      -- No op
+                  | otherwise = modifySTRef gRef (\g -> g)
+      -- No op
+      go _                    = modifySTRef gRef (\g -> g)
+
+  go currMysteryShip
 
 -- TODO: Think about moving this into a different Module
 --         and moving update back into Main.
@@ -84,6 +101,7 @@ update' G.Playing gRef = do
            , G.generateInvaderBullets
            , G.possiblyGenerateMysteryShip
            , removeOffscreenObjects
+           , possiblyRemoveOffscreenMysteryShip
            ] (\f -> do
                       f gRef
                       return unit)

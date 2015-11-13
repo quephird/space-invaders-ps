@@ -12,10 +12,13 @@ import Data.Array ( cons )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
 import Data.Foldable ( foldl )
+import Data.Int ( fromNumber )
 import Data.Maybe ( Maybe(..) )
-import Data.Time ( Milliseconds(..) )
+import Data.Maybe.Unsafe ( fromJust )
+import Data.Time ( Milliseconds(..), Seconds(..), toSeconds )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
+import Math ( floor )
 import Optic.Core ( Lens()
                   , (..), (^.), (.~), (%~)
                   , lens )
@@ -120,6 +123,8 @@ newPlayerBulletSound :: Lens Game Game A.Sound A.Sound
 newPlayerBulletSound = sounds .. O.newPlayerBullet
 newInvaderBulletSound :: Lens Game Game A.Sound A.Sound
 newInvaderBulletSound = sounds .. O.newInvaderBullet
+newMysteryShipSound :: Lens Game Game A.Sound A.Sound
+newMysteryShipSound = sounds .. O.newMysteryShip
 invaderShotSound :: Lens Game Game A.Sound A.Sound
 invaderShotSound = sounds .. O.invaderShot
 playerShotSound :: Lens Game Game A.Sound A.Sound
@@ -222,11 +227,13 @@ generateInvaderBullets gRef = do
     maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
       readSTRef gRef
 
-isBeginningOfCycle :: Milliseconds
-                   -> Milliseconds
+isBeginningOfCycle :: Seconds
+                   -> Int
                    -> Prim.Boolean
-isBeginningOfCycle (Milliseconds t) (Milliseconds c) =
-  t >= c && t `mod` c == 0.0
+isBeginningOfCycle (Seconds t) c =
+  let t' = fromJust $ fromNumber $ floor t
+  in
+    t' >= c && t' `mod` c == 0
 
 possiblyGenerateMysteryShip :: forall g eff. STRef g Game
                             -> Eff ( now :: Now
@@ -235,11 +242,13 @@ possiblyGenerateMysteryShip :: forall g eff. STRef g Game
 possiblyGenerateMysteryShip gRef = do
   g <- readSTRef gRef
   currTime <- nowEpochMilliseconds
-  let millisecondsIntoGame = currTime - g^.startTime
+  let secondsIntoGame = toSeconds $ currTime - g^.startTime
       currMysteryShip = g ^. mysteryShip
-      beginningOfCycle = isBeginningOfCycle millisecondsIntoGame (Milliseconds 5000.0)
-      go Nothing true =
-        modifySTRef gRef (\g -> g # mysteryShip .~ (Just $ M.makeMysteryShip (-100.0) 75.0))
+      beginningOfCycle = isBeginningOfCycle secondsIntoGame 10
+      go Nothing true = do
+        let newEvent = V.Event V.NewMysteryShip V.New
+        modifySTRef gRef (\g -> g # mysteryShip .~ (Just $ M.makeMysteryShip (-100.0) 75.0)
+                                  & events %~ (cons newEvent))
       go _ _ =
         modifySTRef gRef (\g -> g)
 

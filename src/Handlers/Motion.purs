@@ -97,7 +97,7 @@ moveInvader invader newDx newDy = invader # I.x +~ newDx
 moveMysteryShip :: Maybe M.MysteryShip
                 -> Maybe M.MysteryShip
 moveMysteryShip Nothing = Nothing
-moveMysteryShip (Just m) = Just $ m # M.x +~ 5.0
+moveMysteryShip (Just m) = Just $ m # M.x +~ 20.0
 
 movePatrol :: forall g eff. STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game

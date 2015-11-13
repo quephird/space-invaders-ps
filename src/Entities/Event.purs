@@ -13,6 +13,8 @@ instance eqStatus :: Eq Status where
   eq _       _       = false
 
 data EventType = NewInvaderBullet
+               | NewMysteryShip
+               | GoneMysteryShip
                | InvaderShot
                | PlayerShot
 

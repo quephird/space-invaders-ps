@@ -14,7 +14,7 @@ import Optic.Core ( (^.), (+~) )
 import Unsafe.Coerce ( unsafeCoerce )
 
 import qualified Entities.Game as G
-import qualified Handlers.Sound as S
+import qualified Helpers.Audio as A
 
 data Key = Left | Right | SpaceBar | S | Other
 
@@ -36,7 +36,8 @@ respondToKey :: forall g eff. Key
 respondToKey Left G.Playing gRef = movePlayer Left gRef
 respondToKey Right G.Playing gRef = movePlayer Right gRef
 respondToKey SpaceBar G.Playing gRef = do
-  S.playNewPlayerBulletSound gRef
+  g <- readSTRef gRef
+  A.playSound $ g ^. G.newPlayerBulletSound
   G.createPlayerBullet gRef
 
 respondToKey S G.Waiting gRef = do

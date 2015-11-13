@@ -12,14 +12,18 @@ import Optic.Core ( (.~), (^.) )
 
 import qualified Entities.Event as V
 import qualified Entities.Game as G
-import qualified Handlers.Sound as S
+import qualified Helpers.Audio as A
 
-processEvent (V.Event V.PlayerShot _) gRef = do
-  S.playPlayerShotSound gRef
-processEvent (V.Event V.InvaderShot _) gRef = do
-  S.playInvaderShotSound gRef
-processEvent (V.Event V.NewInvaderBullet _) gRef = do
-  S.playNewInvaderBulletSound gRef
+processEvent (V.Event V.PlayerShot _) g = do
+  A.playSound $ g ^. G.playerShotSound
+processEvent (V.Event V.InvaderShot _) g = do
+  A.playSound $ g ^. G.invaderShotSound
+processEvent (V.Event V.NewInvaderBullet _) g = do
+  A.playSound $ g ^. G.newInvaderBulletSound
+processEvent (V.Event V.NewMysteryShip _) g = do
+  A.playSound $ g ^. G.newMysteryShipSound
+processEvent (V.Event V.GoneMysteryShip _) g = do
+  A.stopSound $ g ^. G.newMysteryShipSound
 processEvent _ _ = do
   return unit
 
@@ -38,7 +42,7 @@ processEvents gRef = do
       unhandledEvents  = filter (\e -> e ^. V.status == V.New) currEvents
       newEvents = map (\e -> e # V.status .~ V.Handled) currEvents
   foreachE unhandledEvents $ \event -> do
-    processEvent event gRef
+    processEvent event g
     return unit
   modifySTRef gRef (\g -> g # G.events .~ newEvents)
   return unit

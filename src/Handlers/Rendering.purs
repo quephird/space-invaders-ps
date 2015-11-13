@@ -83,7 +83,7 @@ possiblyRenderMysteryShip ctx g = do
       go Nothing   = return unit
       go (Just m)  = do
         let mysteryShipSprites = g ^. G.mysteryShipSprites
-            secondsIntoGame   = toSeconds $ currentTime - (g ^. G.startTime)
+            secondsIntoGame    = toSeconds $ currentTime - (g ^. G.startTime)
             mysteryShipSprite  = fromJust $ mysteryShipSprites !! (chooseSprite secondsIntoGame)
         drawImageCentered ctx
                           mysteryShipSprite

@@ -16,3 +16,17 @@ exports.playSound = function(sound) {
     sound.play();
   };
 };
+
+exports.loopSound = function(sound) {
+  return function() {
+    sound.load();
+    sound.loop = true;
+    sound.play();
+  };
+};
+
+exports.stopSound = function(sound) {
+  return function() {
+    sound.pause();
+  };
+};

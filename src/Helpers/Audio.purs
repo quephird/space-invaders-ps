@@ -13,3 +13,9 @@ foreign import loadSound :: String
 
 foreign import playSound :: Sound
                          -> forall eff. Eff ( eff ) Unit
+
+foreign import loopSound :: Sound
+                         -> forall eff. Eff ( eff ) Unit
+
+foreign import stopSound :: Sound
+                         -> forall eff. Eff ( eff ) Unit
