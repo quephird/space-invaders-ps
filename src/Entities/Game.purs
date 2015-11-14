@@ -1,6 +1,6 @@
 module Entities.Game where
 
-import Prelude ( bind, flip, mod, otherwise, return, unit
+import Prelude ( bind, flip, map, mod, otherwise, return, unit
                , (#), ($), (+), (-), (*), (<), (>=), (&&), (==) )
 
 import Control.Monad.Eff ( Eff(), foreachE )
@@ -8,7 +8,7 @@ import Control.Monad.Eff.Random ( RANDOM(), random )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Control.MonadPlus ( guard )
-import Data.Array ( cons )
+import Data.Array ( concat, cons )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
 import Data.Foldable ( foldl )
@@ -200,12 +200,36 @@ generateStars gRef = do
 
   maybeMakeNewStar coinToss gRef
 
+-- TODO: Move all generate/create functions into new module Generation
 createPlayerBullet :: forall g eff. STRef g Game
                    -> Eff ( st :: ST g | eff ) Game
 createPlayerBullet gRef = do
   g <- readSTRef gRef
   let newPlayerBullet = B.makePlayerBullet (g ^. playerX) (g ^. playerY)
   modifySTRef gRef (\g -> g # playerBullets %~ (cons newPlayerBullet))
+
+generateMysteryShipBullets :: forall g eff. STRef g Game
+                           -> Eff ( now :: Now
+                                  , random :: RANDOM
+                                  , st :: ST g | eff ) Game
+generateMysteryShipBullets gRef = do
+  g <- readSTRef gRef
+  currTime <- nowEpochMilliseconds
+  let currMysteryShip = g ^. mysteryShip
+      millisecondsIntoGame = currTime - g ^. startTime
+
+      isOnBulletCycle (Milliseconds m) =
+        let m' = fromJust $ fromNumber $ floor m
+        in
+          m' >= 500 && m' `mod` 500 < 50
+
+      go (Just m) true = do
+        let newBullets = map (\dx -> B.makeInvaderBullet (m^.M.x+dx) (m^.M.y+25.0)) [ -25.0, 0.0, 25.0 ]
+        modifySTRef gRef (\g -> g # invaderBullets %~ (\currBullets -> concat [ currBullets, newBullets ])
+                                  & events %~ (cons $ V.Event V.NewInvaderBullet V.New))
+      go _ _           = modifySTRef gRef (\g -> g)
+
+  go currMysteryShip $ isOnBulletCycle millisecondsIntoGame
 
 -- TODO: OMFG THIS IS ABSOLUTE 💩 MAKE THIS BETTER
 generateInvaderBullets :: forall g eff. STRef g Game
@@ -244,7 +268,7 @@ possiblyGenerateMysteryShip gRef = do
   currTime <- nowEpochMilliseconds
   let secondsIntoGame = toSeconds $ currTime - g^.startTime
       currMysteryShip = g ^. mysteryShip
-      beginningOfCycle = isBeginningOfCycle secondsIntoGame 10
+      beginningOfCycle = isBeginningOfCycle secondsIntoGame 7
       go Nothing true = do
         let newEvent = V.Event V.NewMysteryShip V.New
         modifySTRef gRef (\g -> g # mysteryShip .~ (Just $ M.makeMysteryShip (-100.0) 75.0)
