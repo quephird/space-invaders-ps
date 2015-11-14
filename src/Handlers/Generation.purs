@@ -27,6 +27,13 @@ import qualified Entities.MysteryShip as M
 import qualified Entities.Star as T
 import Helpers.Lens ( (&) )
 
+createPlayerBullet :: forall g eff. STRef g G.Game
+                   -> Eff ( st :: ST g | eff ) G.Game
+createPlayerBullet gRef = do
+  g <- readSTRef gRef
+  let newPlayerBullet = B.makePlayerBullet (g ^. G.playerX) (g ^. G.playerY)
+  modifySTRef gRef (\g -> g # G.playerBullets %~ (cons newPlayerBullet))
+
 generateStars :: forall g eff. STRef g G.Game
               -> Eff ( random :: RANDOM
                      , st :: ST g | eff ) G.Game
@@ -42,14 +49,6 @@ generateStars gRef = do
         readSTRef gRef
 
   maybeMakeNewStar coinToss gRef
-
--- TODO: Move all generate/create functions into new module Generation
-createPlayerBullet :: forall g eff. STRef g G.Game
-                   -> Eff ( st :: ST g | eff ) G.Game
-createPlayerBullet gRef = do
-  g <- readSTRef gRef
-  let newPlayerBullet = B.makePlayerBullet (g ^. G.playerX) (g ^. G.playerY)
-  modifySTRef gRef (\g -> g # G.playerBullets %~ (cons newPlayerBullet))
 
 generateMysteryShipBullets :: forall g eff. STRef g G.Game
                            -> Eff ( now :: Now
@@ -74,25 +73,24 @@ generateMysteryShipBullets gRef = do
 
   go currMysteryShip $ isOnBulletCycle millisecondsIntoGame
 
--- TODO: OMFG THIS IS ABSOLUTE 💩 MAKE THIS BETTER
 generateInvaderBullets :: forall g eff. STRef g G.Game
                        -> Eff ( random :: RANDOM
                               , st :: ST g | eff ) G.Game
 generateInvaderBullets gRef = do
   g <- readSTRef gRef
   let currInvaders = g ^. G.invaders
+      maybeMakeNewInvaderBullet r i | r < 0.005 = do
+        let newInvaderBullet = B.makeInvaderBullet (i^.I.x) (i^.I.y+25.0)
+        modifySTRef gRef (\g -> g # G.invaderBullets %~ (cons newInvaderBullet)
+                                  & G.events %~ (cons $ V.Event V.NewInvaderBullet V.New))
+      maybeMakeNewInvaderBullet _ _ | otherwise = do
+        modifySTRef gRef (\g -> g)
 
   foreachE currInvaders $ \i -> do
     r <- random
-    maybeMakeNewInvaderBullet r i gRef
+    maybeMakeNewInvaderBullet r i
     return unit
-  readSTRef gRef where
-    maybeMakeNewInvaderBullet r i gRef | r < 0.005 = do
-      let newInvaderBullet = B.makeInvaderBullet (i^.I.x) (i^.I.y+25.0)
-      modifySTRef gRef (\g -> g # G.invaderBullets %~ (cons newInvaderBullet)
-                                & G.events %~ (cons $ V.Event V.NewInvaderBullet V.New))
-    maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
-      readSTRef gRef
+  readSTRef gRef
 
 isBeginningOfCycle :: Seconds
                    -> Int
