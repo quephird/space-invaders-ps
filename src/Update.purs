@@ -21,6 +21,7 @@ import qualified Entities.Invader as I
 import qualified Entities.Star as T
 import qualified Entities.MysteryShip as Y
 import qualified Handlers.Collision as C
+import qualified Handlers.Generation as N
 import qualified Handlers.Motion as M
 import Helpers.Lens ( (&) )
 
@@ -99,10 +100,7 @@ update' G.Playing gRef = do
            , M.moveInvaderBullets
            , M.movePatrol
            , updateInvaderStatus
-           , G.generateStars
-           , G.generateInvaderBullets
-           , G.generateMysteryShipBullets
-           , G.possiblyGenerateMysteryShip
+           , N.generateEverything
            , removeOffscreenObjects
            , possiblyRemoveOffscreenMysteryShip
            ] (\f -> do

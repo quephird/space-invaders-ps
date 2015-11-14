@@ -1,28 +1,22 @@
 module Entities.Game where
 
-import Prelude ( bind, flip, map, mod, otherwise, return, unit
-               , (#), ($), (+), (-), (*), (<), (>=), (&&), (==) )
+import Prelude ( (#), ($), (*)
+               , bind, return )
 
-import Control.Monad.Eff ( Eff(), foreachE )
-import Control.Monad.Eff.Random ( RANDOM(), random )
+import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Control.MonadPlus ( guard )
-import Data.Array ( concat, cons )
 import Data.Date ( Now()
                  , nowEpochMilliseconds )
-import Data.Foldable ( foldl )
-import Data.Int ( fromNumber )
 import Data.Maybe ( Maybe(..) )
-import Data.Maybe.Unsafe ( fromJust )
-import Data.Time ( Milliseconds(..), Seconds(..), toSeconds )
+import Data.Time ( Milliseconds(..) )
 import Graphics.Canvas ( Canvas()
                        , CanvasImageSource() )
-import Math ( floor )
 import Optic.Core ( Lens()
-                  , (..), (^.), (.~), (%~)
+                  , (..), (^.), (.~)
                   , lens )
-
+--
 import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Event as V
@@ -183,97 +177,3 @@ restartGame gRef = do
                             & playerBullets .~ []
                             & invaderBullets .~ []
                             & events .~ [])
-
-generateStars :: forall g eff. STRef g Game
-              -> Eff ( random :: RANDOM
-                     , st :: ST g | eff ) Game
-generateStars gRef = do
-  g <- readSTRef gRef
-  coinToss <- random
-  let currStars = g ^. stars
-      maybeMakeNewStar coinToss gRef | coinToss < 0.25 = do
-        x <- random
-        let newStar = T.makeStar (g^.w * x) (g^.h)
-        modifySTRef gRef (\g -> g # stars %~ (cons newStar))
-      maybeMakeNewStar _ gRef | otherwise = do
-        readSTRef gRef
-
-  maybeMakeNewStar coinToss gRef
-
--- TODO: Move all generate/create functions into new module Generation
-createPlayerBullet :: forall g eff. STRef g Game
-                   -> Eff ( st :: ST g | eff ) Game
-createPlayerBullet gRef = do
-  g <- readSTRef gRef
-  let newPlayerBullet = B.makePlayerBullet (g ^. playerX) (g ^. playerY)
-  modifySTRef gRef (\g -> g # playerBullets %~ (cons newPlayerBullet))
-
-generateMysteryShipBullets :: forall g eff. STRef g Game
-                           -> Eff ( now :: Now
-                                  , random :: RANDOM
-                                  , st :: ST g | eff ) Game
-generateMysteryShipBullets gRef = do
-  g <- readSTRef gRef
-  currTime <- nowEpochMilliseconds
-  let currMysteryShip = g ^. mysteryShip
-      millisecondsIntoGame = currTime - g ^. startTime
-
-      isOnBulletCycle (Milliseconds m) =
-        let m' = fromJust $ fromNumber $ floor m
-        in
-          m' >= 500 && m' `mod` 500 < 50
-
-      go (Just m) true = do
-        let newBullets = map (\dx -> B.makeInvaderBullet (m^.M.x+dx) (m^.M.y+25.0)) [ -25.0, 0.0, 25.0 ]
-        modifySTRef gRef (\g -> g # invaderBullets %~ (\currBullets -> concat [ currBullets, newBullets ])
-                                  & events %~ (cons $ V.Event V.NewInvaderBullet V.New))
-      go _ _           = modifySTRef gRef (\g -> g)
-
-  go currMysteryShip $ isOnBulletCycle millisecondsIntoGame
-
--- TODO: OMFG THIS IS ABSOLUTE 💩 MAKE THIS BETTER
-generateInvaderBullets :: forall g eff. STRef g Game
-                       -> Eff ( random :: RANDOM
-                              , st :: ST g | eff ) Game
-generateInvaderBullets gRef = do
-  g <- readSTRef gRef
-  let currInvaders = g ^. invaders
-
-  foreachE currInvaders $ \i -> do
-    r <- random
-    maybeMakeNewInvaderBullet r i gRef
-    return unit
-  readSTRef gRef where
-    maybeMakeNewInvaderBullet r i gRef | r < 0.005 = do
-      let newInvaderBullet = B.makeInvaderBullet (i^.I.x) (i^.I.y+25.0)
-      modifySTRef gRef (\g -> g # invaderBullets %~ (cons newInvaderBullet)
-                                & events %~ (cons $ V.Event V.NewInvaderBullet V.New))
-    maybeMakeNewInvaderBullet _ _ gRef | otherwise = do
-      readSTRef gRef
-
-isBeginningOfCycle :: Seconds
-                   -> Int
-                   -> Prim.Boolean
-isBeginningOfCycle (Seconds t) c =
-  let t' = fromJust $ fromNumber $ floor t
-  in
-    t' >= c && t' `mod` c == 0
-
-possiblyGenerateMysteryShip :: forall g eff. STRef g Game
-                            -> Eff ( now :: Now
-                                   , random :: RANDOM
-                                   , st :: ST g | eff ) Game
-possiblyGenerateMysteryShip gRef = do
-  g <- readSTRef gRef
-  currTime <- nowEpochMilliseconds
-  let secondsIntoGame = toSeconds $ currTime - g^.startTime
-      currMysteryShip = g ^. mysteryShip
-      beginningOfCycle = isBeginningOfCycle secondsIntoGame 7
-      go Nothing true = do
-        let newEvent = V.Event V.NewMysteryShip V.New
-        modifySTRef gRef (\g -> g # mysteryShip .~ (Just $ M.makeMysteryShip (-100.0) 75.0)
-                                  & events %~ (cons newEvent))
-      go _ _ =
-        modifySTRef gRef (\g -> g)
-
-  go currMysteryShip beginningOfCycle
