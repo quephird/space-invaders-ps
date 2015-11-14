@@ -60,6 +60,11 @@ generateMysteryShipBullets gRef = do
   let currMysteryShip = g ^. G.mysteryShip
       millisecondsIntoGame = currTime - g ^. G.startTime
 
+      -- ACHTUNG!!! We don't check for strict equality here, only
+      -- that the time into the game is less than the time between
+      -- frames (50). If we checked for equality, we'd hardly ever generate
+      -- bullets; if we checked for any longer length of time, we'd
+      -- risk generating bullets twice or more per cycle.
       isOnBulletCycle (Milliseconds m) =
         let m' = fromJust $ fromNumber $ floor m
         in
