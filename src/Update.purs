@@ -95,10 +95,7 @@ update' G.Playing gRef = do
            , C.checkPlayerShot
            , C.checkInvadersShot
            , checkInvadersCleared
-           , M.moveStars
-           , M.movePlayerBullets
-           , M.moveInvaderBullets
-           , M.movePatrol
+           , M.moveEverything
            , updateInvaderStatus
            , N.generateEverything
            , removeOffscreenObjects

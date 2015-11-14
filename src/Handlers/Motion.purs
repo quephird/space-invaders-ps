@@ -2,9 +2,9 @@ module Handlers.Motion where
 
 import Prelude ( Ordering(..), Unit()
                , ($), (#), (<$>), (<), (>), (+), (-), (*), (/), (||), (==), (<=)
-               , bind, compare, flip, map, negate, otherwise, return )
+               , bind, compare, flip, map, negate, otherwise, return, unit )
 
-import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Data.Array ( (!!), findLastIndex, head, length, tail )
@@ -118,3 +118,15 @@ movePatrol gRef = do
                             & G.patrolDirection .~ newDir
                             & G.patrolDx .~ newDx
                             & G.mysteryShip .~ newMysteryShip)
+
+moveEverything :: forall g eff. STRef g G.Game
+               -> Eff ( st :: ST g | eff ) G.Game
+moveEverything gRef = do
+  foreachE [ moveStars
+           , movePlayerBullets
+           , moveInvaderBullets
+           , movePatrol
+           ] (\f -> do
+                      f gRef
+                      return unit)
+  readSTRef gRef
