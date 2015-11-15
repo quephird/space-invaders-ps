@@ -71,7 +71,7 @@ generateMysteryShipBullets gRef = do
           m' >= 500 && m' `mod` 500 < 50
 
       go (Just m) true = do
-        let newBullets = map (\dx -> B.makeInvaderBullet (m^.M.x+dx) (m^.M.y+25.0)) [ -25.0, 0.0, 25.0 ]
+        let newBullets = map (\dx -> B.makeMysteryBullet (m^.M.x+dx) (m^.M.y+25.0)) [ -25.0, 0.0, 25.0 ]
         modifySTRef gRef (\g -> g # G.invaderBullets %~ (\currBullets -> concat [ currBullets, newBullets ])
                                   & G.events %~ (cons $ V.Event V.NewInvaderBullet V.New))
       go _ _           = modifySTRef gRef (\g -> g)

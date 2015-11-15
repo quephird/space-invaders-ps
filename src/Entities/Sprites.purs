@@ -17,6 +17,7 @@ data Sprites = Sprites
   , shotInvader :: CanvasImageSource
   , deadInvader :: CanvasImageSource
   , mysteryShip :: Array CanvasImageSource
+  , mysteryBullet :: CanvasImageSource
   , lives :: CanvasImageSource
   }
 
@@ -36,7 +37,8 @@ deadInvader = lens (\(Sprites s) -> s.deadInvader)
                    (\(Sprites s) deadInvader' -> Sprites (s { deadInvader = deadInvader' }))
 mysteryShip = lens (\(Sprites s) -> s.mysteryShip)
                    (\(Sprites s) mysteryShip' -> Sprites (s { mysteryShip = mysteryShip' }))
-
+mysteryBullet = lens (\(Sprites s) -> s.mysteryBullet)
+                     (\(Sprites s) mysteryBullet' -> Sprites (s { mysteryBullet = mysteryBullet' }))
 
 loadSprites :: forall eff. Eff ( canvas :: Canvas | eff ) Sprites
 loadSprites = do
@@ -52,6 +54,7 @@ loadSprites = do
   mysteryShipSprite2 <- makeCanvasImageSource "images/mysteryShip2.png"
   mysteryShipSprite3 <- makeCanvasImageSource "images/mysteryShip3.png"
   mysteryShipSprite4 <- makeCanvasImageSource "images/mysteryShip4.png"
+  mysteryBulletSprite <- makeCanvasImageSource "images/mysteryBullet.png"
 
   return $ Sprites
     { player: playerSprite
@@ -63,4 +66,5 @@ loadSprites = do
     , lives: lifeSprite
     , mysteryShip: [ mysteryShipSprite1, mysteryShipSprite2
                    , mysteryShipSprite3, mysteryShipSprite4 ]
+    , mysteryBullet: mysteryBulletSprite
     }

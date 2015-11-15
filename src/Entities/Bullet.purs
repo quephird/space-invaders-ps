@@ -4,7 +4,7 @@ import Prelude ( Eq, (==), (&&) )
 
 import Optic.Core ( lens, (^.) )
 
-data Type = Player | Invader | Boss
+data Type = Player | Invader | Mystery | Boss
 
 data Bullet = Bullet
   { type :: Type
@@ -25,6 +25,7 @@ makeBullet t x y = Bullet
   }
 makePlayerBullet = makeBullet Player
 makeInvaderBullet = makeBullet Invader
+makeMysteryBullet = makeBullet Mystery
 makeBossBullet = makeBullet Boss
 
 bulletType = lens (\(Bullet b) -> b.type)
@@ -36,6 +37,6 @@ y = lens (\(Bullet b) -> b.y)
 
 -- TODO: rely on unique ID's instead of coordinates; this is kinda hacky. :S
 instance eqBullet :: Eq Bullet where
-  eq b1 b2 = b1^.bulletType ==b2^.bulletType &&
+  eq b1 b2 = b1^.bulletType == b2^.bulletType &&
              b1^.x == b2^.x &&
              b1^.y == b2^.y

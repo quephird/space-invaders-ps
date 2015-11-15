@@ -150,18 +150,20 @@ renderPlayerBullets ctx g = do
     return unit
   return unit
 
-renderInvaderBullets :: forall eff g. Context2D
-                     -> G.Game
-                     -> Eff ( canvas :: Canvas
-                            , st :: ST g | eff ) Unit
-renderInvaderBullets ctx g = do
+renderEnemyBullets :: forall eff g. Context2D
+                   -> G.Game
+                   -> Eff ( canvas :: Canvas
+                          , st :: ST g | eff ) Unit
+renderEnemyBullets ctx g = do
   foreachE (g ^. G.invaderBullets) $ \b -> do
     drawImageCentered ctx
-                      (g ^. G.invaderBulletSprite)
+                      (chooseSprite $ b ^. B.bulletType)
                       (b ^. B.x)
                       (b ^. B.y)
     return unit
-  return unit
+  return unit where
+    chooseSprite B.Invader = g ^. G.invaderBulletSprite
+    chooseSprite B.Mystery = g ^. G.mysteryBulletSprite
 
 render' :: forall eff g. G.Status
         -> STRef g G.Game
@@ -185,7 +187,7 @@ render' G.Playing gRef = do
            , renderEnemies
            , renderPlayer
            , renderPlayerBullets
-           , renderInvaderBullets
+           , renderEnemyBullets
            ] (\f -> f ctx g)
 
 render' G.Waiting gRef = do

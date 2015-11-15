@@ -16,7 +16,7 @@ import Graphics.Canvas ( Canvas()
 import Optic.Core ( Lens()
                   , (..), (^.), (.~)
                   , lens )
---
+
 import qualified Entities.Bullet as B
 import qualified Entities.Enemies as E
 import qualified Entities.Event as V
@@ -112,6 +112,8 @@ deadInvaderSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 deadInvaderSprite = sprites .. S.deadInvader
 mysteryShipSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
 mysteryShipSprites = sprites .. S.mysteryShip
+mysteryBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
+mysteryBulletSprite = sprites .. S.mysteryBullet
 
 newPlayerBulletSound :: Lens Game Game A.Sound A.Sound
 newPlayerBulletSound = sounds .. O.newPlayerBullet
