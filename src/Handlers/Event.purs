@@ -23,7 +23,7 @@ processEvent (V.Event V.NewInvaderBullet _) g = do
 processEvent (V.Event V.NewMysteryShip _) g = do
   A.playSound $ g ^. G.newMysteryShipSound
 processEvent (V.Event V.NewMysteryBullet _) g = do
-  A.playSound $ g ^. G.newInvaderBulletSound
+  A.playSound $ g ^. G.newMysteryBulletSound
 processEvent (V.Event V.GoneMysteryShip _) g = do
   A.stopSound $ g ^. G.newMysteryShipSound
 processEvent _ _ = do

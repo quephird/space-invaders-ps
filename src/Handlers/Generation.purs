@@ -73,7 +73,7 @@ generateMysteryShipBullets gRef = do
       go (Just m) true = do
         let newBullets = map (\dx -> B.makeMysteryBullet (m^.M.x+dx) (m^.M.y+25.0)) [ -25.0, 0.0, 25.0 ]
         modifySTRef gRef (\g -> g # G.invaderBullets %~ (\currBullets -> concat [ currBullets, newBullets ])
-                                  & G.events %~ (cons $ V.Event V.NewInvaderBullet V.New))
+                                  & G.events %~ (cons $ V.Event V.NewMysteryBullet V.New))
       go _ _           = modifySTRef gRef (\g -> g)
 
   go currMysteryShip $ isOnBulletCycle millisecondsIntoGame

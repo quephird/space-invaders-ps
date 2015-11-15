@@ -44,7 +44,7 @@ loadAllSounds = do
     { newPlayerBullet:  newPlayerBulletSound
     , newInvaderBullet: newInvaderBulletSound
     , newMysteryShip:   newMysteryShipSound
-    , newMysteryBullet: newInvaderBulletSound
+    , newMysteryBullet: newMysteryBulletSound
     , invaderShot:      invaderShotSound
     , playerShot:       playerShotSound
     }

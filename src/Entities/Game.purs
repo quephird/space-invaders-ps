@@ -121,6 +121,8 @@ newInvaderBulletSound :: Lens Game Game A.Sound A.Sound
 newInvaderBulletSound = sounds .. O.newInvaderBullet
 newMysteryShipSound :: Lens Game Game A.Sound A.Sound
 newMysteryShipSound = sounds .. O.newMysteryShip
+newMysteryBulletSound :: Lens Game Game A.Sound A.Sound
+newMysteryBulletSound = sounds .. O.newMysteryBullet
 invaderShotSound :: Lens Game Game A.Sound A.Sound
 invaderShotSound = sounds .. O.invaderShot
 playerShotSound :: Lens Game Game A.Sound A.Sound
