@@ -26,6 +26,9 @@ processEvent (V.Event V.NewMysteryBullet _) g = do
   A.playSound $ g ^. G.newMysteryBulletSound
 processEvent (V.Event V.GoneMysteryShip _) g = do
   A.stopSound $ g ^. G.newMysteryShipSound
+processEvent (V.Event V.MysteryShipShot _) g = do
+  A.stopSound $ g ^. G.newMysteryShipSound
+  A.playSound $ g ^. G.mysteryShipShotSound
 processEvent _ _ = do
   return unit
 

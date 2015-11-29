@@ -39,6 +39,25 @@ updateInvaderStatus gRef = do
       newInvaders = map (\i -> i # I.status .~ (newStatus $ i^.I.status)) remainingInvaders
   modifySTRef gRef (\g -> g # G.invaders .~ newInvaders)
 
+updateMysteryShipStatus gRef = do
+  g <- readSTRef gRef
+  let mysteryShip = g ^. G.mysteryShip
+      newMysteryShip (Just m) =
+        case (m ^. Y.status) of
+          Y.Shot -> Just $ m # Y.status .~ Y.Dead
+          Y.Dead -> Nothing
+          _      -> Just m
+      newMysteryShip _        = Nothing
+
+      go (Just m) = modifySTRef gRef (\g -> g # G.mysteryShip .~ (newMysteryShip mysteryShip))
+      go _        = modifySTRef gRef (\g -> g)
+
+  go mysteryShip
+
+-- updatePatrol gRef = do
+--   updateInvaders gRef
+--   updateMysteryShip gRef
+
 possiblyRemoveOffscreenMysteryShip gRef = do
   g <- readSTRef gRef
   let currMysteryShip   = g ^. G.mysteryShip
@@ -94,9 +113,11 @@ update' G.Playing gRef = do
   foreachE [ checkPlayerDead
            , C.checkPlayerShot
            , C.checkInvadersShot
+           , C.checkMysteryShipShot
            , checkInvadersCleared
            , M.moveEverything
            , updateInvaderStatus
+           , updateMysteryShipStatus
            , N.generateEverything
            , removeOffscreenObjects
            , possiblyRemoveOffscreenMysteryShip

@@ -1,10 +1,18 @@
 module Entities.MysteryShip where
 
+import Prelude ( Eq, (==) )
+
 import Optic.Core ( lens )
 
 data Status = Alive
-            | Dying
+            | Shot
             | Dead
+
+instance eqStatus :: Eq Status where
+  eq Alive Alive = true
+  eq Shot  Shot  = true
+  eq Dead  Dead  = true
+  eq _     _     = false
 
 data MysteryShip = MysteryShip
   { x :: Number

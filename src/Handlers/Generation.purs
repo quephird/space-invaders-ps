@@ -16,7 +16,7 @@ import Data.Maybe ( Maybe(..) )
 import Data.Maybe.Unsafe ( fromJust )
 import Data.Time ( Milliseconds(..), Seconds(..)
                  , toSeconds )
-import Math ( floor )
+import Math ( (%), floor )
 import Optic.Core ( (^.), (.~), (%~) )
 
 import qualified Entities.Bullet as B
@@ -98,12 +98,10 @@ generateInvaderBullets gRef = do
   readSTRef gRef
 
 isBeginningOfCycle :: Seconds
-                   -> Int
+                   -> Number
                    -> Prim.Boolean
 isBeginningOfCycle (Seconds t) c =
-  let t' = fromJust $ fromNumber $ floor t
-  in
-    t' >= c && t' `mod` c == 0
+  t >= c && t % c < 0.050
 
 possiblyGenerateMysteryShip :: forall g eff. STRef g G.Game
                             -> Eff ( now :: Now
@@ -114,7 +112,7 @@ possiblyGenerateMysteryShip gRef = do
   currTime <- nowEpochMilliseconds
   let secondsIntoGame = toSeconds $ currTime - g^.G.startTime
       currMysteryShip = g ^. G.mysteryShip
-      beginningOfCycle = isBeginningOfCycle secondsIntoGame 7
+      beginningOfCycle = isBeginningOfCycle secondsIntoGame 7.0
       go Nothing true = do
         let newEvent = V.Event V.NewMysteryShip V.New
         modifySTRef gRef (\g -> g # G.mysteryShip .~ (Just $ M.makeMysteryShip (-100.0) 75.0)

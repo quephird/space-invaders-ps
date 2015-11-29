@@ -15,6 +15,7 @@ data Sounds = Sounds
   , newMysteryShip   :: A.Sound
   , newMysteryBullet :: A.Sound
   , invaderShot      :: A.Sound
+  , mysteryShipShot  :: A.Sound
   , playerShot       :: A.Sound
   }
 
@@ -28,6 +29,8 @@ newMysteryBullet = lens (\(Sounds s) -> s.newMysteryBullet)
                         (\(Sounds s) newMysteryBullet' -> Sounds (s { newMysteryBullet = newMysteryBullet' }))
 invaderShot = lens (\(Sounds s) -> s.invaderShot)
                    (\(Sounds s) invaderShot' -> Sounds (s { invaderShot = invaderShot' }))
+mysteryShipShot = lens (\(Sounds s) -> s.mysteryShipShot)
+                       (\(Sounds s) mysteryShipShot' -> Sounds (s { mysteryShipShot = mysteryShipShot' }))
 playerShot = lens (\(Sounds s) -> s.playerShot)
                   (\(Sounds s) playerShot' -> Sounds (s { playerShot = playerShot' }))
 
@@ -38,6 +41,7 @@ loadAllSounds = do
   newMysteryShipSound   <- A.loadSound "sounds/newMysteryShip.mp3"
   newMysteryBulletSound <- A.loadSound "sounds/newMysteryBullet.wav"
   invaderShotSound      <- A.loadSound "sounds/invaderShot.wav"
+  mysteryShipShotSound  <- A.loadSound "sounds/mysteryShipShot.wav"
   playerShotSound       <- A.loadSound "sounds/playerShot.wav"
 
   return $ Sounds
@@ -46,5 +50,6 @@ loadAllSounds = do
     , newMysteryShip:   newMysteryShipSound
     , newMysteryBullet: newMysteryBulletSound
     , invaderShot:      invaderShotSound
+    , mysteryShipShot:  mysteryShipShotSound
     , playerShot:       playerShotSound
     }
