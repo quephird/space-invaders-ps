@@ -109,6 +109,7 @@ checkInvadersCleared gRef = do
       go _ = modifySTRef gRef (\g -> g)
   go $ length invaders
 
+-- TODO: This is still too noisy; need to group function calls better.
 update' G.Playing gRef = do
   foreachE [ checkPlayerDead
            , C.checkForAllCollisions

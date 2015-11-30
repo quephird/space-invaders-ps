@@ -50,6 +50,7 @@ generateStars gRef = do
 
   maybeMakeNewStar coinToss gRef
 
+-- TODO: WARNING! WARNING! Magic number for time per frame below
 generateMysteryShipBullets :: forall g eff. STRef g G.Game
                            -> Eff ( now :: Now
                                   , random :: RANDOM
@@ -97,6 +98,7 @@ generateInvaderBullets gRef = do
     return unit
   readSTRef gRef
 
+-- TODO: WARNING! WARNING! Magic number for time per frame below
 isBeginningOfCycle :: Seconds
                    -> Number
                    -> Prim.Boolean
