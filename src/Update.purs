@@ -111,9 +111,7 @@ checkInvadersCleared gRef = do
 
 update' G.Playing gRef = do
   foreachE [ checkPlayerDead
-           , C.checkPlayerShot
-           , C.checkInvadersShot
-           , C.checkMysteryShipShot
+           , C.checkForAllCollisions
            , checkInvadersCleared
            , M.moveEverything
            , updateInvaderStatus

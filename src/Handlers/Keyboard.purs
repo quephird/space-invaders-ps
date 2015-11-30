@@ -19,6 +19,7 @@ import qualified Helpers.Audio as A
 
 data Key = Left | Right | SpaceBar | S | Other
 
+-- TODO: Need to constrain player within margins
 movePlayer :: forall g eff. Key
            -> STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game

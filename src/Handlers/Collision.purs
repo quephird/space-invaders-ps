@@ -1,9 +1,9 @@
 module Handlers.Collision where
 
 import Prelude ( (#), ($), (*), (-), (&&), (<), (>), (==)
-               , bind, map, otherwise, return )
+               , bind, map, otherwise, return, unit )
 
-import Control.Monad.Eff ( Eff() )
+import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Data.Array ( (\\), concat, cons, filter, length, nub )
@@ -113,5 +113,15 @@ checkMysteryShipShot gRef = do
             go _    = modifySTRef gRef (\g -> g)
         go isShot'
   go mysteryShip
+
+checkForAllCollisions gRef = do
+  foreachE [ checkPlayerShot
+           , checkInvadersShot
+           , checkMysteryShipShot
+           ] (\f -> do
+                      f gRef
+                      return unit)
+  readSTRef gRef
+
 
 

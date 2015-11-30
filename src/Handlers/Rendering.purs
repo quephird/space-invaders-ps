@@ -72,6 +72,8 @@ renderLives ctx g = do
     return unit
   return unit
 
+-- TODO: Need to introduce some sort of animation here
+--         when ship is destroyed.
 possiblyRenderMysteryShip :: forall eff g. Context2D
                           -> G.Game
                           -> Eff ( canvas :: Canvas
