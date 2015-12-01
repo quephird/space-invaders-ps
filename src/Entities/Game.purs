@@ -40,6 +40,7 @@ data Status = GameOver
 data Game = Game
   { w :: Number
   , h :: Number
+  , frameDuration :: Milliseconds
   , startTime :: Milliseconds
   , status    :: Status
   , score     :: Int
@@ -58,6 +59,8 @@ w = lens (\(Game g) -> g.w)
          (\(Game g) w' -> Game (g { w = w' }))
 h = lens (\(Game g) -> g.h)
          (\(Game g) h' -> Game (g { h = h' }))
+frameDuration = lens (\(Game g) -> g.frameDuration)
+                     (\(Game g) frameDuration' -> Game (g { frameDuration = frameDuration' }))
 startTime = lens (\(Game g) -> g.startTime)
                  (\(Game g) startTime' -> Game (g { startTime = startTime' }))
 status = lens (\(Game g) -> g.status)
@@ -132,10 +135,11 @@ playerShotSound = sounds .. O.playerShot
 
 makeGame :: forall eff. Number
          -> Number
+         -> Milliseconds
          -> Eff ( canvas :: Canvas
                 , now :: Now
                 , random :: RANDOM | eff ) Game
-makeGame w h = do
+makeGame w h frameDuration = do
   let player = P.makePlayer (0.5*w) (0.9*h)
   sprites <- S.loadSprites
   sounds <- O.loadAllSounds
@@ -144,6 +148,7 @@ makeGame w h = do
   return $ Game
     { w:         w
     , h:         h
+    , frameDuration: frameDuration
     , startTime: startTime
     , status:    Waiting
     , score:     0

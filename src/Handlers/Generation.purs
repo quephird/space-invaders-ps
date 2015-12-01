@@ -50,7 +50,18 @@ generateStars gRef = do
 
   maybeMakeNewStar coinToss gRef
 
--- TODO: WARNING! WARNING! Magic number for time per frame below
+-- ACHTUNG!!! We don't check for strict equality here, only
+-- that the time into the cycle is within the time between
+-- frames passed in. If we checked for strict equality, we'd hardly
+-- ever generate anything; if we checked for any longer length of time,
+-- we'd risk generating entities twice or more per cycle.
+isBeginningOfCycle :: Milliseconds
+                   -> Milliseconds
+                   -> Milliseconds
+                   -> Prim.Boolean
+isBeginningOfCycle (Milliseconds t) (Milliseconds c) (Milliseconds d) =
+  t >= c && t % c < d
+
 generateMysteryShipBullets :: forall g eff. STRef g G.Game
                            -> Eff ( now :: Now
                                   , random :: RANDOM
@@ -59,17 +70,10 @@ generateMysteryShipBullets gRef = do
   g <- readSTRef gRef
   currTime <- nowEpochMilliseconds
   let currMysteryShip = g ^. G.mysteryShip
-      millisecondsIntoGame = currTime - g ^. G.startTime
-
-      -- ACHTUNG!!! We don't check for strict equality here, only
-      -- that the time into the game is less than the time between
-      -- frames (50). If we checked for equality, we'd hardly ever generate
-      -- bullets; if we checked for any longer length of time, we'd
-      -- risk generating bullets twice or more per cycle.
-      isOnBulletCycle (Milliseconds m) =
-        let m' = fromJust $ fromNumber $ floor m
-        in
-          m' >= 500 && m' `mod` 500 < 50
+      frameDuration   = g ^. G.frameDuration
+      timeIntoGame    = currTime - g ^. G.startTime
+      cycleDuration   = Milliseconds 500.0
+      beginningOfCycle = isBeginningOfCycle timeIntoGame cycleDuration frameDuration
 
       go (Just m) true = do
         let newBullets = map (\dx -> B.makeMysteryBullet (m^.M.x+dx) (m^.M.y+25.0)) [ -25.0, 0.0, 25.0 ]
@@ -77,7 +81,7 @@ generateMysteryShipBullets gRef = do
                                   & G.events %~ (cons $ V.Event V.NewMysteryBullet V.New))
       go _ _           = modifySTRef gRef (\g -> g)
 
-  go currMysteryShip $ isOnBulletCycle millisecondsIntoGame
+  go currMysteryShip beginningOfCycle
 
 generateInvaderBullets :: forall g eff. STRef g G.Game
                        -> Eff ( random :: RANDOM
@@ -98,13 +102,6 @@ generateInvaderBullets gRef = do
     return unit
   readSTRef gRef
 
--- TODO: WARNING! WARNING! Magic number for time per frame below
-isBeginningOfCycle :: Seconds
-                   -> Number
-                   -> Prim.Boolean
-isBeginningOfCycle (Seconds t) c =
-  t >= c && t % c < 0.050
-
 possiblyGenerateMysteryShip :: forall g eff. STRef g G.Game
                             -> Eff ( now :: Now
                                    , random :: RANDOM
@@ -112,9 +109,12 @@ possiblyGenerateMysteryShip :: forall g eff. STRef g G.Game
 possiblyGenerateMysteryShip gRef = do
   g <- readSTRef gRef
   currTime <- nowEpochMilliseconds
-  let secondsIntoGame = toSeconds $ currTime - g^.G.startTime
+  let frameDuration   = g ^. G.frameDuration
+      timeIntoGame    = currTime - g ^. G.startTime
+      cycleDuration   = Milliseconds 7000.0
       currMysteryShip = g ^. G.mysteryShip
-      beginningOfCycle = isBeginningOfCycle secondsIntoGame 7.0
+      beginningOfCycle = isBeginningOfCycle currTime cycleDuration frameDuration
+
       go Nothing true = do
         let newEvent = V.Event V.NewMysteryShip V.New
         modifySTRef gRef (\g -> g # G.mysteryShip .~ (Just $ M.makeMysteryShip (-100.0) 75.0)
