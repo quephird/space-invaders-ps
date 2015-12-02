@@ -52,7 +52,7 @@ checkPlayerShot gRef = do
       isDead       = (>0) $ length $ filter (isShot player) currBullets
 
       go true = modifySTRef gRef (\g -> g # G.lives -~ 1
-                                          & G.playerBullets .~ []
+                                          & G.playerBullet .~ Nothing
                                           & G.invaderBullets .~ []
                                           & G.events .~ [V.Event V.PlayerShot V.New])
       go _    = modifySTRef gRef (\g -> g)
@@ -63,56 +63,54 @@ checkInvadersShot :: forall eff g. STRef g G.Game
                   -> Eff ( st :: ST g | eff ) G.Game
 checkInvadersShot gRef = do
   g <- readSTRef gRef
-  let currBullets  = g ^. G.playerBullets
-      currInvaders = g ^. G.invaders
-      currEvents   = g ^. G.events
-      collisions   = filter (\(Tuple i b) -> isShot i b) $ do
-                       i <- currInvaders
-                       b <- currBullets
-                       return $ Tuple i b
+  let currBullet   = g ^. G.playerBullet
+      go Nothing   = modifySTRef gRef (\g -> g)
+      go (Just b)  = do
+        let currInvaders = g ^. G.invaders
+            currEvents   = g ^. G.events
+            collisions   = filter (\(Tuple i b) -> isShot i b) $ do
+                             i <- currInvaders
+                             return $ Tuple i b
 
-      shotInvaders  = nub $ map (\(Tuple i _) -> i # I.status .~ I.Shot) collisions
-      otherInvaders = currInvaders \\ shotInvaders
-      deadBullets   = map (\(Tuple _ b) -> b) collisions
-      newInvaders   = concat $ [otherInvaders, shotInvaders]
-      newBullets    = currBullets \\ deadBullets
-      -- TODO: Think about how scoring should be best handled.
-      newPoints     = 100 * length shotInvaders
-      newEvents | length shotInvaders > 0 = cons (V.Event V.InvaderShot V.New) currEvents
-                | otherwise               = currEvents
+            shotInvaders  = nub $ map (\(Tuple i _) -> i # I.status .~ I.Shot) collisions
+            otherInvaders = currInvaders \\ shotInvaders
+            newInvaders   = concat $ [otherInvaders, shotInvaders]
+            -- TODO: Think about how scoring should be best handled.
+            newPoints     = 100 * length shotInvaders
 
-  modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
-                            & G.playerBullets .~ newBullets
-                            & G.score +~ newPoints
-                            & G.events .~ newEvents)
+            newBullet | length collisions > 0 = Nothing
+                      | otherwise             = currBullet
+            newEvents | length shotInvaders > 0 = cons (V.Event V.InvaderShot V.New) currEvents
+                      | otherwise               = currEvents
+
+        modifySTRef gRef (\g -> g # G.invaders .~ newInvaders
+                                  & G.playerBullet .~ newBullet
+                                  & G.score +~ newPoints
+                                  & G.events .~ newEvents)
+
+  go currBullet
 
 checkMysteryShipShot :: forall eff g. STRef g G.Game
                      -> Eff ( st :: ST g | eff ) G.Game
 checkMysteryShipShot gRef = do
   g <- readSTRef gRef
-  let currBullets  = g ^. G.playerBullets
+  let currBullet   = g ^. G.playerBullet
       mysteryShip  = g ^. G.mysteryShip
 
-      go Nothing  = modifySTRef gRef (\g -> g)
-      go (Just m) = do
+      go (Just b) (Just m) = do
         let currEvents   = g ^. G.events
             collisions   = filter (\(Tuple m b) -> isShot m b) $ do
-                             b <- currBullets
                              return $ Tuple m b
-            isShot'      = (>0) $ length collisions
-            deadBullets   = map (\(Tuple _ b) -> b) collisions
-            newBullets    = currBullets \\ deadBullets
+            newMysteryShip = Just $ m # M.status .~ M.Shot
 
-            newMysteryShip true = Just $ m # M.status .~ M.Shot
-            newMysteryShip _    = Just m
-
-            go true = modifySTRef gRef (\g -> g # G.playerBullets .~ newBullets
-                                                & G.mysteryShip .~ (newMysteryShip isShot')
-                                                & G.score +~ 1000
-                                                & G.events .~ [V.Event V.MysteryShipShot V.New])
-            go _    = modifySTRef gRef (\g -> g)
-        go isShot'
-  go mysteryShip
+            go' true = modifySTRef gRef (\g -> g # G.playerBullet .~ Nothing
+                                                 & G.mysteryShip .~ newMysteryShip
+                                                 & G.score +~ 1000
+                                                 & G.events .~ [V.Event V.MysteryShipShot V.New])
+            go' _    = modifySTRef gRef (\g -> g)
+        go' $ isShot m b
+      go _ _ = modifySTRef gRef (\g -> g)
+  go currBullet mysteryShip
 
 checkForAllCollisions gRef = do
   foreachE [ checkPlayerShot

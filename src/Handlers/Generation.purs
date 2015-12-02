@@ -31,8 +31,12 @@ createPlayerBullet :: forall g eff. STRef g G.Game
                    -> Eff ( st :: ST g | eff ) G.Game
 createPlayerBullet gRef = do
   g <- readSTRef gRef
-  let newPlayerBullet = B.makePlayerBullet (g ^. G.playerX) (g ^. G.playerY)
-  modifySTRef gRef (\g -> g # G.playerBullets %~ (cons newPlayerBullet))
+  let currBullet = g ^. G.playerBullet
+      go Nothing = do
+        let newPlayerBullet = Just $ B.makePlayerBullet (g ^. G.playerX) (g ^. G.playerY)
+        modifySTRef gRef (\g -> g # G.playerBullet .~ newPlayerBullet)
+      go _       = modifySTRef gRef (\g -> g)
+  go currBullet
 
 generateStars :: forall g eff. STRef g G.Game
               -> Eff ( random :: RANDOM

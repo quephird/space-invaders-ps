@@ -38,21 +38,21 @@ data Status = GameOver
 
 -- TODO: Need to introduce current level property.
 data Game = Game
-  { w :: Number
-  , h :: Number
-  , frameDuration :: Milliseconds
-  , startTime :: Milliseconds
-  , status    :: Status
-  , score     :: Int
-  , lives     :: Int
-  , player    :: P.Player
-  , playerBullets :: Array B.Bullet
+  { w              :: Number
+  , h              :: Number
+  , frameDuration  :: Milliseconds
+  , startTime      :: Milliseconds
+  , status         :: Status
+  , score          :: Int
+  , lives          :: Int
+  , player         :: P.Player
+  , playerBullet   :: Maybe B.Bullet
   , invaderBullets :: Array B.Bullet
-  , enemies   :: E.Enemies
-  , events    :: Array V.Event
-  , stars     :: Array T.Star
-  , sprites   :: S.Sprites
-  , sounds    :: O.Sounds
+  , enemies        :: E.Enemies
+  , events         :: Array V.Event
+  , stars          :: Array T.Star
+  , sprites        :: S.Sprites
+  , sounds         :: O.Sounds
   }
 
 w = lens (\(Game g) -> g.w)
@@ -71,8 +71,8 @@ lives = lens (\(Game g) -> g.lives)
              (\(Game g) lives' -> Game (g { lives = lives' }))
 player = lens (\(Game g) -> g.player)
               (\(Game g) player' -> Game (g { player = player' }))
-playerBullets = lens (\(Game g) -> g.playerBullets)
-                     (\(Game g) playerBullets' -> Game (g { playerBullets = playerBullets' }))
+playerBullet  = lens (\(Game g) -> g.playerBullet )
+                     (\(Game g) playerBullet' -> Game (g { playerBullet = playerBullet' }))
 invaderBullets = lens (\(Game g) -> g.invaderBullets)
                       (\(Game g) invaderBullets' -> Game (g { invaderBullets = invaderBullets' }))
 enemies = lens (\(Game g) -> g.enemies)
@@ -146,21 +146,21 @@ makeGame w h frameDuration = do
   startTime <- nowEpochMilliseconds
   stars <- T.generateStars w h
   return $ Game
-    { w:         w
-    , h:         h
-    , frameDuration: frameDuration
-    , startTime: startTime
-    , status:    Waiting
-    , score:     0
-    , lives:     3
-    , player:    player
-    , playerBullets: []
+    { w:              w
+    , h:              h
+    , frameDuration:  frameDuration
+    , startTime:      startTime
+    , status:         Waiting
+    , score:          0
+    , lives:          3
+    , player:         player
+    , playerBullet:   Nothing
     , invaderBullets: []
-    , enemies:   E.makeRegularLevel
-    , events:    []
-    , stars:     stars
-    , sprites:   sprites
-    , sounds:    sounds
+    , enemies:        E.makeRegularLevel
+    , events:         []
+    , stars:          stars
+    , sprites:        sprites
+    , sounds:         sounds
     }
 
 startGame :: forall g eff. STRef g Game
@@ -185,6 +185,6 @@ restartGame gRef = do
                             & score .~ 0
                             & lives .~ 3
                             & enemies .~ E.makeRegularLevel
-                            & playerBullets .~ []
+                            & playerBullet .~ Nothing
                             & invaderBullets .~ []
                             & events .~ [])

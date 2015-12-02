@@ -8,6 +8,7 @@ import Control.Monad.Eff ( Eff(), Pure() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Data.Date ( Now() )
+import Data.Maybe ( Maybe(..) )
 import DOM.Event.EventTarget ( EventListener()
                              , eventListener )
 import DOM.Event.Types ( Event() )
@@ -51,8 +52,12 @@ respondToKey Left G.Playing gRef = movePlayer Left gRef
 respondToKey Right G.Playing gRef = movePlayer Right gRef
 respondToKey SpaceBar G.Playing gRef = do
   g <- readSTRef gRef
-  A.playSound $ g ^. G.newPlayerBulletSound
-  N.createPlayerBullet gRef
+  let currBullet = g ^. G.playerBullet
+      go Nothing = do
+        A.playSound $ g ^. G.newPlayerBulletSound
+        N.createPlayerBullet gRef
+      go _ = readSTRef gRef
+  go currBullet
 
 respondToKey S G.Waiting gRef = do
   G.startGame gRef

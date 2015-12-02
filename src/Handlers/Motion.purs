@@ -34,13 +34,17 @@ moveStars gRef = do
       newStars = map (\s -> s # T.y -~ 5.0) stars
   modifySTRef gRef (\g -> g # G.stars .~ newStars)
 
-movePlayerBullets :: forall g eff. STRef g G.Game
-                  -> Eff ( st :: ST g | eff ) G.Game
-movePlayerBullets gRef = do
+movePlayerBullet :: forall g eff. STRef g G.Game
+                 -> Eff ( st :: ST g | eff ) G.Game
+movePlayerBullet gRef = do
   g <- readSTRef gRef
-  let playerBullets = g ^. G.playerBullets
-      newPlayerBullets = map (\b -> b # B.y -~ 20.0) playerBullets
-  modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets)
+  let currBullet = g ^. G.playerBullet
+      go (Just b) = do
+        let newBullet = Just $ b # B.y -~ 20.0
+        modifySTRef gRef (\g -> g # G.playerBullet .~ newBullet)
+      go _        = modifySTRef gRef (\g -> g)
+
+  go currBullet
 
 moveInvaderBullets :: forall g eff. STRef g G.Game
                    -> Eff ( st :: ST g | eff ) G.Game
@@ -123,7 +127,7 @@ moveEverything :: forall g eff. STRef g G.Game
                -> Eff ( st :: ST g | eff ) G.Game
 moveEverything gRef = do
   foreachE [ moveStars
-           , movePlayerBullets
+           , movePlayerBullet
            , moveInvaderBullets
            , movePatrol
            ] (\f -> do

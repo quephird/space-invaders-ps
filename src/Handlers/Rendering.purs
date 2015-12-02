@@ -144,13 +144,16 @@ renderPlayerBullets :: forall eff g. Context2D
                     -> Eff ( canvas :: Canvas
                            , st :: ST g | eff ) Unit
 renderPlayerBullets ctx g = do
-  foreachE (g ^. G.playerBullets) $ \b -> do
-    drawImageCentered ctx
-                      (g ^. G.playerBulletSprite)
-                      (b ^. B.x)
-                      (b ^. B.y)
-    return unit
-  return unit
+  let playerBullet = g ^. G.playerBullet
+      go (Just b) = do
+        drawImageCentered ctx
+                          (g ^. G.playerBulletSprite)
+                          (b ^. B.x)
+                          (b ^. B.y)
+        return unit
+      go _        = return unit
+
+  go playerBullet
 
 renderEnemyBullets :: forall eff g. Context2D
                    -> G.Game

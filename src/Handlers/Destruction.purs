@@ -66,11 +66,14 @@ removeOffscreenBulletsAndStars gRef = do
   g <- readSTRef gRef
   let stars             = g ^. G.stars
       newStars          = filter (\s -> s ^. T.y > -10.0) stars
-      playerBullets     = g ^. G.playerBullets
-      newPlayerBullets  = filter (\b -> b ^. B.y > -10.0) playerBullets
       invaderBullets    = g ^. G.invaderBullets
       newInvaderBullets = filter (\b -> b ^. B.y < g^.G.h+10.0) invaderBullets
-  modifySTRef gRef (\g -> g # G.playerBullets .~ newPlayerBullets
+
+      playerBullet      = g ^. G.playerBullet
+      newPlayerBullet (Just b) | b ^. B.y < -10.0 = Nothing
+                               | otherwise        = playerBullet
+      newPlayerBullet _ = Nothing
+  modifySTRef gRef (\g -> g # G.playerBullet .~ (newPlayerBullet playerBullet)
                             & G.invaderBullets .~ newInvaderBullets
                             & G.stars .~ newStars)
 
