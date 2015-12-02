@@ -32,14 +32,12 @@ checkPlayerDead gRef = do
                | otherwise  = modifySTRef gRef (\g -> g)
   go lives
 
--- TODO: don't just make new level; a mystery ship may already be in flight
---         instead just create new fleet of invaders
 checkInvadersCleared :: forall eff g. STRef g G.Game
                      -> Eff ( st :: ST g | eff ) G.Game
 checkInvadersCleared gRef = do
   g <- readSTRef gRef
   let invaders = g ^. G.invaders
-      go 0 = modifySTRef gRef (\g -> g # G.enemies .~ E.makeRegularLevel)
+      go 0 = modifySTRef gRef (\g -> g # G.invaders .~ E.makeNewInvaders)
       go _ = modifySTRef gRef (\g -> g)
   go $ length invaders
 

@@ -36,19 +36,21 @@ dx = lens (\(Patrol p) -> p.dx)
 mysteryShip = lens (\(Patrol p) -> p.mysteryShip)
                    (\(Patrol p) mysteryShip' -> Patrol ( p { mysteryShip = mysteryShip' }))
 
+makeNewInvaders :: Array I.Invader
+makeNewInvaders = do
+  x <- 0 .. 7
+  y <- 0 .. 2
+  return $ I.makeInvader (50.0 + 75.0*toNumber x)
+                         (125.0 + 75.0*toNumber y)
+                         (x + 7*y)
+
 makeRegularLevel :: Enemies
 makeRegularLevel =
-  Patrol { invaders: makeInvaders
+  Patrol { invaders: makeNewInvaders
          , direction: Right
          , dx: 2.0
          , mysteryShip: Nothing
-         } where
-    makeInvaders = do
-      x <- 0 .. 7
-      y <- 0 .. 2
-      return $ I.makeInvader (50.0 + 75.0*toNumber x)
-                             (125.0 + 75.0*toNumber y)
-                             (x + 7*y)
+         }
 
 makeBossLevel =
   BossLevel $ B.makeBoss 600.0 300.0
