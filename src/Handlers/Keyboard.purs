@@ -1,7 +1,8 @@
 module Handlers.Keyboard where
 
-import Prelude ( ($), (#)
-               , bind, return )
+import Prelude ( Eq
+               , ($), (#), (&&), (-), (<=), (==), (>=)
+               , bind, otherwise, return )
 
 import Control.Monad.Eff ( Eff(), Pure() )
 import Control.Monad.ST ( ST(), STRef()
@@ -19,15 +20,26 @@ import qualified Helpers.Audio as A
 
 data Key = Left | Right | SpaceBar | S | Other
 
--- TODO: Need to constrain player within margins
+instance eqKey :: Eq Key where
+  eq Left     Left     = true
+  eq Right    Right    = true
+  eq S        S        = true
+  eq SpaceBar SpaceBar = true
+  eq Other    Other    = true
+  eq _        _        = false
+
 movePlayer :: forall g eff. Key
            -> STRef g G.Game
            -> Eff ( st :: ST g | eff ) G.Game
 movePlayer key gRef = do
-  let dx = case key of
-             Left -> -10.0
-             Right -> 10.0
-             _ -> 0.0
+  g <- readSTRef gRef
+  let w  = g ^. G.w
+      h  = g ^. G.h
+      x  = g ^. G.playerX
+      m  = 50.0
+      dx | key == Left && x>=m    = -10.0
+         | key == Right && x<=w-m = 10.0
+         | otherwise              = 0.0
   modifySTRef gRef (\g -> g # G.playerX +~ dx)
 
 respondToKey :: forall g eff. Key
