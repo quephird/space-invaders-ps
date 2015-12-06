@@ -8,14 +8,15 @@ import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( head, length, tail )
+import Data.Array ( cons, head, length, tail )
 import Data.Date ( Now() )
 import Data.Foldable ( foldl )
 import Data.Maybe.Unsafe ( fromJust )
 import Math ( max )
-import Optic.Core ( (^.), (.~) )
+import Optic.Core ( (^.), (.~), (%~) )
 
 import qualified Entities.Enemies as E
+import qualified Entities.Event as V
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
 import qualified Handlers.Collision as C
@@ -23,6 +24,7 @@ import qualified Handlers.Destruction as D
 import qualified Handlers.Generation as N
 import qualified Handlers.Motion as M
 import qualified Handlers.Transition as R
+import Helpers.Lens ( (&) )
 
 -- import Control.Monad.Eff.Console ( CONSOLE() )
 -- import Control.Monad.Eff.Console.Unsafe ( logAny )
@@ -58,7 +60,8 @@ checkInvadersLanded gRef = do
       maxY     = foldl (\a i -> max a (i ^. I.y)) (firstI ^. I.y) restI
       hasLanded = maxY >= 0.9*h
 
-      go true = modifySTRef gRef (\g -> g # G.status .~ G.GameOver)
+      go true = modifySTRef gRef (\g -> g # G.status .~ G.GameOver
+                                          & G.events %~ cons (V.Event V.InvadersLanded V.New))
       go _    = modifySTRef gRef (\g -> g)
 
   go hasLanded

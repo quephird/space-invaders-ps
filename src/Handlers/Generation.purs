@@ -66,6 +66,8 @@ isBeginningOfCycle :: Milliseconds
 isBeginningOfCycle (Milliseconds t) (Milliseconds c) (Milliseconds d) =
   t >= c && t % c < d
 
+-- TODO: Look into why bullets are sometimes either not generated on cycle or
+--       generated twice.
 generateMysteryShipBullets :: forall g eff. STRef g G.Game
                            -> Eff ( now :: Now
                                   , random :: RANDOM

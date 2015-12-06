@@ -43,6 +43,10 @@ instance shootablePlayer :: Shootable P.Player where
     abs(p^.P.x - b^.B.x) < 25.0 &&
     abs(p^.P.y - b^.B.y) < 25.0
 
+-- TODO: Need to put player back in center of screen,
+--         as well as put them in some temporary invincible
+--         state as a sort of grace period. Player should
+--         also blink during this period.
 checkPlayerShot :: forall eff g. STRef g G.Game
                 -> Eff ( st :: ST g | eff ) G.Game
 checkPlayerShot gRef = do

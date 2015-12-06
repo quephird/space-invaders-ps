@@ -17,6 +17,7 @@ data Sounds = Sounds
   , invaderShot      :: A.Sound
   , mysteryShipShot  :: A.Sound
   , playerShot       :: A.Sound
+  , invadersLanded   :: A.Sound
   }
 
 newPlayerBullet = lens (\(Sounds s) -> s.newPlayerBullet)
@@ -33,6 +34,8 @@ mysteryShipShot = lens (\(Sounds s) -> s.mysteryShipShot)
                        (\(Sounds s) mysteryShipShot' -> Sounds (s { mysteryShipShot = mysteryShipShot' }))
 playerShot = lens (\(Sounds s) -> s.playerShot)
                   (\(Sounds s) playerShot' -> Sounds (s { playerShot = playerShot' }))
+invadersLanded = lens (\(Sounds s) -> s.invadersLanded)
+                      (\(Sounds s) invadersLanded' -> Sounds (s { invadersLanded = invadersLanded' }))
 
 -- TODO: Need to figure out how insure that all sounds are loaded
 loadAllSounds = do
@@ -43,6 +46,7 @@ loadAllSounds = do
   invaderShotSound      <- A.loadSound "sounds/invaderShot.wav"
   mysteryShipShotSound  <- A.loadSound "sounds/mysteryShipShot.wav"
   playerShotSound       <- A.loadSound "sounds/playerShot.wav"
+  invadersLandedSound   <- A.loadSound "sounds/invadersLanded.wav"
 
   return $ Sounds
     { newPlayerBullet:  newPlayerBulletSound
@@ -52,4 +56,5 @@ loadAllSounds = do
     , invaderShot:      invaderShotSound
     , mysteryShipShot:  mysteryShipShotSound
     , playerShot:       playerShotSound
+    , invadersLanded:   invadersLandedSound
     }

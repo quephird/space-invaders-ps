@@ -19,6 +19,7 @@ data EventType = NewInvaderBullet
                | InvaderShot
                | MysteryShipShot
                | PlayerShot
+               | InvadersLanded
 
 data Event = Event EventType Status
 

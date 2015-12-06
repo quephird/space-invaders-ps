@@ -132,6 +132,8 @@ mysteryShipShotSound :: Lens Game Game A.Sound A.Sound
 mysteryShipShotSound = sounds .. O.mysteryShipShot
 playerShotSound :: Lens Game Game A.Sound A.Sound
 playerShotSound = sounds .. O.playerShot
+invadersLandedSound :: Lens Game Game A.Sound A.Sound
+invadersLandedSound = sounds .. O.invadersLanded
 
 makeGame :: forall eff. Number
          -> Number
