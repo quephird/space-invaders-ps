@@ -1,19 +1,23 @@
 module Update where
 
 import Prelude ( Unit()
-               , (#), ($), (==)
+               , (#), ($), (==), (>=), (*)
                , bind, otherwise, return, unit )
 
 import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.Eff.Random ( RANDOM() )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
-import Data.Array ( length )
+import Data.Array ( head, length, tail )
 import Data.Date ( Now() )
+import Data.Foldable ( foldl )
+import Data.Maybe.Unsafe ( fromJust )
+import Math ( max )
 import Optic.Core ( (^.), (.~) )
 
 import qualified Entities.Enemies as E
 import qualified Entities.Game as G
+import qualified Entities.Invader as I
 import qualified Handlers.Collision as C
 import qualified Handlers.Destruction as D
 import qualified Handlers.Generation as N
@@ -41,8 +45,31 @@ checkInvadersCleared gRef = do
       go _ = modifySTRef gRef (\g -> g)
   go $ length invaders
 
+  
+checkInvadersLanded :: forall eff g. STRef g G.Game
+                    -> Eff ( st :: ST g | eff ) G.Game
+checkInvadersLanded gRef = do
+ -- get set of current invaders
+  g <- readSTRef gRef
+  let invaders = g ^. G.invaders
+      h        = g ^. G.h
+      firstI   = fromJust $ head invaders
+      restI    = fromJust $ tail invaders
+      maxY     = foldl (\a i -> max a (i ^. I.y)) (firstI ^. I.y) restI
+      hasLanded = maxY >= 0.9*h
+
+      go true = modifySTRef gRef (\g -> g # G.status .~ G.GameOver)
+      go _    = modifySTRef gRef (\g -> g)
+
+  go hasLanded
+ -- get the maxiumum value
+ -- see if it's more than critical value
+ --   true -> game over
+ --   false -> continue
+
 update' G.Playing gRef = do
-  foreachE [ checkPlayerDead
+  foreachE [ checkInvadersLanded
+           , checkPlayerDead
            , checkInvadersCleared
            , D.removeAllDeadOrOffscreenObjects
            , C.checkForAllCollisions
