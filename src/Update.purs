@@ -65,10 +65,6 @@ checkInvadersLanded gRef = do
       go _    = modifySTRef gRef (\g -> g)
 
   go hasLanded
- -- get the maxiumum value
- -- see if it's more than critical value
- --   true -> game over
- --   false -> continue
 
 update' G.Playing gRef = do
   foreachE [ checkInvadersLanded

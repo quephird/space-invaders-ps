@@ -128,11 +128,15 @@ renderEnemies ctx g = do
     return unit
   possiblyRenderMysteryShip ctx g
 
+-- TODO: If player is in new status, 
+--         then alternate between two sprites
+--         else just use one sprite
 renderPlayer :: forall eff g. Context2D
              -> G.Game
              -> Eff ( canvas :: Canvas
                     , st :: ST g | eff ) Unit
 renderPlayer ctx g = do
+  let status = g ^. G.playerStatus
   drawImageCentered ctx
                     (g ^. G.playerSprite)
                     (g ^. G.playerX)

@@ -7,6 +7,8 @@ import Control.Monad.Eff ( Eff(), foreachE )
 import Control.Monad.ST ( ST(), STRef()
                         , modifySTRef, readSTRef )
 import Data.Array ( (\\), concat, cons, filter, length, nub )
+import Data.Date ( Now()
+                 , nowEpochMilliseconds )
 import Data.Maybe ( Maybe(..) )
 import Data.Tuple ( Tuple(..) )
 import Math ( abs )
@@ -38,28 +40,30 @@ instance shootableMysteryShip :: Shootable M.MysteryShip where
     abs(m^.M.x - b^.B.x) < 50.0 &&
     abs(m^.M.y - b^.B.y) < 25.0
 
+-- TODO: Player can only be shot if in Alive status
 instance shootablePlayer :: Shootable P.Player where
   isShot p b =
+    p^.P.status == P.Alive &&
     abs(p^.P.x - b^.B.x) < 25.0 &&
     abs(p^.P.y - b^.B.y) < 25.0
 
--- TODO: Need to put player back in center of screen,
---         as well as put them in some temporary invincible
---         state as a sort of grace period. Player should
---         also blink during this period.
 checkPlayerShot :: forall eff g. STRef g G.Game
-                -> Eff ( st :: ST g | eff ) G.Game
+                -> Eff ( now :: Now
+                       , st :: ST g | eff ) G.Game
 checkPlayerShot gRef = do
   g <- readSTRef gRef
   let currBullets  = g ^. G.invaderBullets
       player       = g ^. G.player
       isDead       = (>0) $ length $ filter (isShot player) currBullets
 
-      go true = modifySTRef gRef (\g -> g # G.lives -~ 1
-                                          & G.playerBullet .~ Nothing
-                                          & G.invaderBullets .~ []
-                                          & G.events .~ [V.Event V.PlayerShot V.New]
-                                          & G.playerX .~ 0.5*g^.G.w)
+      go true = do
+        newStartTime <- nowEpochMilliseconds
+        let newPlayer = P.resetPlayer (g^.G.player) (0.5*g^.G.w) newStartTime
+        modifySTRef gRef (\g -> g # G.lives -~ 1
+                                  & G.playerBullet .~ Nothing
+                                  & G.invaderBullets .~ []
+                                  & G.events .~ [V.Event V.PlayerShot V.New]
+                                  & G.player .~ newPlayer)
       go _    = modifySTRef gRef (\g -> g)
 
   go isDead

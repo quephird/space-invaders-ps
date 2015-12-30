@@ -90,6 +90,10 @@ playerX :: Lens Game Game Number Number
 playerX = player .. P.x
 playerY :: Lens Game Game Number Number
 playerY = player .. P.y
+playerStartTime :: Lens Game Game Milliseconds Milliseconds
+playerStartTime = player .. P.startTime
+playerStatus :: Lens Game Game P.Status P.Status
+playerStatus = player .. P.status
 invaders :: Lens Game Game (Array I.Invader) (Array I.Invader)
 invaders = enemies .. E.invaders
 patrolDirection :: Lens Game Game E.Direction E.Direction
@@ -142,11 +146,11 @@ makeGame :: forall eff. Number
                 , now :: Now
                 , random :: RANDOM | eff ) Game
 makeGame w h frameDuration = do
-  let player = P.makePlayer (0.5*w) (0.9*h)
   sprites <- S.loadSprites
   sounds <- O.loadAllSounds
   startTime <- nowEpochMilliseconds
   stars <- T.generateStars w h
+  let player = P.makePlayer (0.5*w) (0.9*h) startTime
   return $ Game
     { w:              w
     , h:              h
@@ -180,7 +184,7 @@ restartGame :: forall g eff. STRef g Game
 restartGame gRef = do
   g <- readSTRef gRef
   newStartTime <- nowEpochMilliseconds
-  let newPlayer = P.makePlayer (0.5*g^.w) (0.9*g^.h)
+  let newPlayer = P.makePlayer (0.5*g^.w) (0.9*g^.h) newStartTime
   modifySTRef gRef (\g -> g # status .~ Playing
                             & player .~ newPlayer
                             & startTime .~ newStartTime

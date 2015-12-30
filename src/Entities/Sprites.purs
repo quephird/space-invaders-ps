@@ -11,6 +11,7 @@ import Helpers.Image ( makeCanvasImageSource, getWidth )
 
 data Sprites = Sprites
   { player :: CanvasImageSource
+  , playerNew :: CanvasImageSource
   , playerBullet :: CanvasImageSource
   , invader :: Array CanvasImageSource
   , invaderBullet :: CanvasImageSource
@@ -25,6 +26,8 @@ lives = lens (\(Sprites s) -> s.lives)
              (\(Sprites s) lives' -> Sprites (s { lives = lives' }))
 player = lens (\(Sprites s) -> s.player)
               (\(Sprites s) player' -> Sprites (s { player = player' }))
+playerNew = lens (\(Sprites s) -> s.playerNew)
+                 (\(Sprites s) playerNew' -> Sprites (s { playerNew = playerNew' }))
 playerBullet = lens (\(Sprites s) -> s.playerBullet)
                     (\(Sprites s) playerBullet' -> Sprites (s { playerBullet = playerBullet' }))
 invader = lens (\(Sprites s) -> s.invader)
@@ -43,6 +46,7 @@ mysteryBullet = lens (\(Sprites s) -> s.mysteryBullet)
 loadSprites :: forall eff. Eff ( canvas :: Canvas | eff ) Sprites
 loadSprites = do
   playerSprite <- makeCanvasImageSource "images/player.png"
+  playerNewSprite <- makeCanvasImageSource "images/playerNew.png"
   playerBulletSprite <- makeCanvasImageSource "images/playerBullet.png"
   invaderSprite1 <- makeCanvasImageSource "images/invader1.png"
   invaderSprite2 <- makeCanvasImageSource "images/invader2.png"
@@ -58,6 +62,7 @@ loadSprites = do
 
   return $ Sprites
     { player: playerSprite
+    , playerNew: playerNewSprite
     , playerBullet: playerBulletSprite
     , invader: [ invaderSprite1, invaderSprite2 ]
     , invaderBullet: invaderBulletSprite
