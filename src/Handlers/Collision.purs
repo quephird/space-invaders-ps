@@ -58,7 +58,8 @@ checkPlayerShot gRef = do
       go true = modifySTRef gRef (\g -> g # G.lives -~ 1
                                           & G.playerBullet .~ Nothing
                                           & G.invaderBullets .~ []
-                                          & G.events .~ [V.Event V.PlayerShot V.New])
+                                          & G.events .~ [V.Event V.PlayerShot V.New]
+                                          & G.playerX .~ 0.5*g^.G.w)
       go _    = modifySTRef gRef (\g -> g)
 
   go isDead
