@@ -67,9 +67,9 @@ checkInvadersLanded gRef = do
   go hasLanded
 
 update' G.Playing gRef = do
-  foreachE [ checkInvadersLanded
+  foreachE [ checkInvadersCleared
+           , checkInvadersLanded
            , checkPlayerDead
-           , checkInvadersCleared
            , D.removeAllDeadOrOffscreenObjects
            , C.checkForAllCollisions
            , M.moveEverything
