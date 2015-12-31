@@ -105,8 +105,8 @@ mysteryShip = enemies .. E.mysteryShip
 
 lifeSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 lifeSprite = sprites .. S.lives
-playerSprite :: Lens Game Game CanvasImageSource CanvasImageSource
-playerSprite = sprites .. S.player
+playerSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)
+playerSprites = sprites .. S.player
 playerBulletSprite :: Lens Game Game CanvasImageSource CanvasImageSource
 playerBulletSprite = sprites .. S.playerBullet
 invaderSprites :: Lens Game Game (Array CanvasImageSource) (Array CanvasImageSource)

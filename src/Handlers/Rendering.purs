@@ -28,6 +28,7 @@ import qualified Entities.Bullet as B
 import qualified Entities.Game as G
 import qualified Entities.Invader as I
 import qualified Entities.MysteryShip as M
+import qualified Entities.Player as P
 import qualified Entities.Star as T
 import Helpers.Image ( drawImageCentered, getWidth )
 
@@ -128,17 +129,26 @@ renderEnemies ctx g = do
     return unit
   possiblyRenderMysteryShip ctx g
 
--- TODO: If player is in new status, 
---         then alternate between two sprites
---         else just use one sprite
 renderPlayer :: forall eff g. Context2D
              -> G.Game
              -> Eff ( canvas :: Canvas
+                    , now :: Now
                     , st :: ST g | eff ) Unit
 renderPlayer ctx g = do
+  currTime <- nowEpochMilliseconds
   let status = g ^. G.playerStatus
+      playerSprites = g ^. G.playerSprites
+      secondsIntoPlayerLife = toSeconds $ currTime - (g ^. G.playerStartTime)
+      chooseSprite status (Seconds s) =
+        case status of
+          P.New ->
+            let spriteIdx = (fromJust $ fromNumber $ floor $ s * 4.0) `mod` 2
+            in
+              fromJust $ playerSprites !! spriteIdx
+          _     -> fromJust $ playerSprites !! 0
+      sprite = chooseSprite status secondsIntoPlayerLife
   drawImageCentered ctx
-                    (g ^. G.playerSprite)
+                    sprite
                     (g ^. G.playerX)
                     (g ^. G.playerY)
   return unit

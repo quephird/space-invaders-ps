@@ -18,11 +18,6 @@ import qualified Entities.Invader as I
 import qualified Entities.Player as P
 import qualified Entities.MysteryShip as Y
 
--- TODO: Check between now and player start time 
---       if time is greater than three seconds and current status is new
---         then update player status to alive
---         else leave status be
---         
 updatePlayerStatus :: forall eff g. STRef g G.Game
                    -> Eff ( now :: Now
                           , st :: ST g | eff ) G.Game
@@ -32,7 +27,7 @@ updatePlayerStatus gRef = do
   let playerLifeTime = currTime - g ^. G.playerStartTime
       go true = modifySTRef gRef (\g -> g # G.playerStatus .~ P.Alive)
       go _    = readSTRef gRef
-  go (playerLifeTime >= (Milliseconds 3000.0))
+  go (playerLifeTime >= (Milliseconds 5000.0))
 
 updateInvaderStatus gRef = do
   g <- readSTRef gRef
